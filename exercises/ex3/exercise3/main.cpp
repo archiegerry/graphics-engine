@@ -285,7 +285,11 @@ int main() try
 			100.f //far plane
 		);
 
-		Mat44f projCameraWorld = projection * world2Camera * model2World;
+
+		Mat44f cameraWorld = world2Camera * model2World;
+		Mat44f projCameraWorld = projection * cameraWorld;
+
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld.v);
 
 		
 		// endofTODO
