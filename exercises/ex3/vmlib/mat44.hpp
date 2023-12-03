@@ -86,6 +86,8 @@ Vec4f operator*( Mat44f const& aLeft, Vec4f const& aRight ) noexcept
 		(aLeft(2,0) * aRight.x) + (aLeft(2, 1) * aRight.y) + (aLeft(2, 2) * aRight.z) + (aLeft(2, 3) * aRight.w), //z
 		(aLeft(3,0) * aRight.x) + (aLeft(3, 1) * aRight.y) + (aLeft(3, 2) * aRight.z) + (aLeft(3, 3) * aRight.w)  //w
 	};
+
+	return result;
 }
 
 // Functions:
@@ -157,7 +159,6 @@ Mat44f make_translation(Vec3f aTranslation) noexcept
 inline
 Mat44f make_perspective_projection( float aFovInRadians, float aAspect, float aNear, float aFar ) noexcept
 {
-
 	float aFovInDegrees = aFovInRadians * (180.0f / 3.14159265358979323846f);
 
 	float tan_of_half_fov = std::tan(aFovInDegrees / 2.0f);
