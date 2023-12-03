@@ -79,13 +79,15 @@ Mat44f operator*( Mat44f const& aLeft, Mat44f const& aRight ) noexcept
 constexpr
 Vec4f operator*( Mat44f const& aLeft, Vec4f const& aRight ) noexcept
 {
-	Vec4f result = 
+	Vec4f result =
 	{
 		(aLeft(0,0) * aRight.x) + (aLeft(0, 1) * aRight.y) + (aLeft(0, 2) * aRight.z) + (aLeft(0, 3) * aRight.w), //x
 		(aLeft(1,0) * aRight.x) + (aLeft(1, 1) * aRight.y) + (aLeft(1, 2) * aRight.z) + (aLeft(1, 3) * aRight.w), //y
 		(aLeft(2,0) * aRight.x) + (aLeft(2, 1) * aRight.y) + (aLeft(2, 2) * aRight.z) + (aLeft(2, 3) * aRight.w), //z
 		(aLeft(3,0) * aRight.x) + (aLeft(3, 1) * aRight.y) + (aLeft(3, 2) * aRight.z) + (aLeft(3, 3) * aRight.w)  //w
 	};
+
+	return result;
 }
 
 // Functions:
