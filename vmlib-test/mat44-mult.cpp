@@ -5,22 +5,18 @@ TEST_CASE("4x4 matrix by matrix multiplication", "[mat44]")
 {
 	static constexpr float kEps_ = 1e-6f;
 
-	using namespace Catch::Matchers;
-
 	SECTION("Identity * Identity")
 	{
-		auto const identity = Mat44f{ 1.f , 0.f, 0.f, 0.f,
-									  0.f , 1.f, 0.f, 0.f,
-									  0.f , 0.f, 1.f, 0.f,
-									  0.f , 0.f, 0.f, 1.f } 
-			
-											* 
+		auto const identity = Mat44f( Mat44f{ 1.f , 0.f, 0.f, 0.f,
+											  0.f , 1.f, 0.f, 0.f, 
+											  0.f , 0.f, 1.f, 0.f,
+											  0.f , 0.f, 0.f, 1.f },
 
-							  Mat44f{ 1.f , 0.f, 0.f, 0.f,
-									  0.f , 1.f, 0.f, 0.f,
-									  0.f , 0.f, 1.f, 0.f,
-									  0.f , 0.f, 0.f, 1.f };
-
+									  Mat44f{ 1.f , 0.f, 0.f, 0.f,
+											  0.f , 1.f, 0.f, 0.f,
+											  0.f , 0.f, 1.f, 0.f,
+											  0.f , 0.f, 0.f, 1.f } );
+		
 		REQUIRE_THAT(identity(0, 0), WithinAbs(1.f, kEps_));
 		REQUIRE_THAT(identity(0, 1), WithinAbs(0.f, kEps_));
 		REQUIRE_THAT(identity(0, 2), WithinAbs(0.f, kEps_));
