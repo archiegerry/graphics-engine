@@ -1,155 +1,146 @@
-workspace "COMP3811-cw2"
-	language "C++"
-	cppdialect "C++17"
+-- Third party builds
+
+includedirs( "stb/include" );
+includedirs( "glad/include" );
+includedirs( "glfw/include" );
+includedirs( "rapidobj/include" );
+includedirs( "catch2/include" );
+includedirs( "fontstash/include" );
+
+filter "system:macosx"
+	-- Additional dependencies required by GLFW on MacOS.
+	links {
+		"Cocoa.framework", 
+		"OpenGL.framework", 
+		"IOKit.framework", 
+		"CoreVideo.framework" 
+	};
+filter "*"
 
 
+project( "x-stb" )
+	kind "StaticLib"
 
-	platforms { "x64" }
-	configurations { "debug", "release" }
-
-	flags "NoPCH"
-	flags "MultiProcessorCompile"
-
-	startproject "main"
-
-	debugdir "%{wks.location}"
-	objdir "_build_/%{cfg.buildcfg}-%{cfg.platform}-%{cfg.toolset}"
-	targetsuffix "-%{cfg.buildcfg}-%{cfg.platform}-%{cfg.toolset}"
-	
-	-- Default toolset options
-	filter "toolset:gcc or toolset:clang"
-		linkoptions { "-pthread" }
-		buildoptions { "-march=native", "-Wall", "-pthread" }
-
-		-- Varriable-length arrays (VLAs) are an extension that GCC and clang
-		-- have long supported. However, they are not part of the C++ standard.
-		-- (MSVC will not compile code with VLAs.)
-		buildoptions { "-Werror=vla" }
+	location "."
 
 	filter "toolset:msc-*"
-		warnings "extra" -- this enables /W4; default is /W3
-		--buildoptions { "/W4" }
-		buildoptions { "/utf-8" }
-		buildoptions { "/permissive-" }
-		defines { "_CRT_SECURE_NO_WARNINGS=1" }
-		defines { "_SCL_SECURE_NO_WARNINGS=1" }
-	
+		-- This is a third party project. We don't fix "upstreams" warnings, as
+		-- the upstreams project may have different standards w.r.t. warning
+		-- levels. Instead, we disable them specifically for this subproject.
+		buildoptions {
+			"/wd4204", -- nonstandard extension: non-constant aggregate
+		}
 	filter "*"
 
-	-- default libraries
+	files( "stb/src/*.c" )
+
+project( "x-glad" )
+	kind "StaticLib"
+
+	location "."
+
+	files( "glad/src/*.c" )
+
+project( "x-glfw" )
+	kind "StaticLib"
+
+	location "."
+
 	filter "system:linux"
-		links "dl"
-	
+		defines { "_GLFW_X11=1" }
+
 	filter "system:windows"
-		links "OpenGL32"
+		defines { "_GLFW_WIN32=1" }
+
+	filter "system:macosx"
+		defines { "_GLFW_COCOA=1" }
 
 	filter "*"
 
-	-- default outputs
-	filter "kind:StaticLib"
-		targetdir "lib/"
-
-	filter "kind:ConsoleApp"
-		targetdir "bin/"
-		targetextension ".exe"
-	
+	filter "toolset:msc-*"
+		-- See comment on warnings above.
+		buildoptions {
+			"/wd4100", -- unreferenced formal parameter
+			"/wd4201", -- nonstandard extension: nameless struct/union
+			"/wd4204", -- nonstandard extension: non-constant aggregate
+			"/wd4244", -- conversion from X to Y, possible loss of data
+			"/wd4706", -- assignment within condition expression
+		}
 	filter "*"
 
-	--configurations
-	filter "debug"
-		symbols "On"
-		defines { "_DEBUG=1" }
+	files {
+		"glfw/src/context.c",
+		"glfw/src/egl_context.c",
+		"glfw/src/init.c",
+		"glfw/src/input.c",
+		"glfw/src/internal.h",
+		"glfw/src/mappings.h",
+		"glfw/src/monitor.c",
+		"glfw/src/null_init.c",
+		"glfw/src/null_joystick.c",
+		"glfw/src/null_joystick.h",
+		"glfw/src/null_monitor.c",
+		"glfw/src/null_platform.h",
+		"glfw/src/null_window.c",
+		"glfw/src/platform.c",
+		"glfw/src/platform.h",
+		"glfw/src/vulkan.c",
+		"glfw/src/window.c",
+		"glfw/src/osmesa_context.c"
+	};
 
-	filter "release"
-		optimize "On"
-		defines { "NDEBUG=1" }
+	filter "system:linux"
+		files {
+			"glfw/src/posix_*",
+			"glfw/src/x11_*", 
+			"glfw/src/xkb_*",
+			"glfw/src/glx_*",
+			"glfw/src/linux_*",
+		};
+	filter "system:windows"
+		files {
+			"glfw/src/win32_*",
+			"glfw/src/wgl_*", 
+		};
+	filter "system:macosx"
+		-- WARNING: this is completely untested!
+		files {
+			"glfw/src/cocoa_*",
+			"glfw/src/nsgl_context.m",
+			"glfw/src/posix_thread.*",
+			"glfw/src/posix_module.*"
+
+		};
 
 	filter "*"
 
-
--- Third party dependencies
-include "third_party" 
-
--- Projects
-project "main"
-	local sources = { 
-		"main/**.cpp",
-		"main/**.hpp",
-		"main/**.hxx",
-		"main/**.inl"
-	}
-
-	kind "ConsoleApp"
-	location "main"
-
-	files( sources )
-
-	links "vmlib"
-	links "support"
-
-	links "x-stb"
-	links "x-glad"
-	links "x-glfw"
-
-	files( sources )
-
-project "main-shaders"
-	local shaders = { 
-		"assets/*.vert",
-		"assets/*.frag",
-		"assets/*.geom",
-		"assets/*.tesc",
-		"assets/*.tese",
-		"assets/*.comp"
-	}
-
+project( "x-rapidobj" )
 	kind "Utility"
-	location "assets"
 
-	files( shaders )
+	location "."
 
-project "support"
-	local sources = { 
-		"support/**.cpp",
-		"support/**.hpp",
-		"support/**.hxx",
-		"support/**.inl"
-	}
+	files( "rapidobj/include/**.h*" )
 
+project( "x-catch2" )
 	kind "StaticLib"
-	location "support"
 
-	files( sources )
+	location "."
 
-project "vmlib"
-	local sources = { 
-		"vmlib/**.cpp",
-		"vmlib/**.hpp",
-		"vmlib/**.hxx",
-		"vmlib/**.inl"
-	}
+	filter "system:windows"
+		-- Catch2 defaults to the non-standard wmain() entry function
+		-- on Windows. Don't do that.
+		defines { "DO_NOT_USE_WMAIN=1" }
+	filter "*"
 
+	files( "catch2/include/**.hpp" )
+	files( "catch2/src/*.cpp" )
+
+project( "x-fontstash" )
 	kind "StaticLib"
-	location "vmlib"
 
-	files( sources )
+	location "."
 
-project "vmlib-test"
-	local sources = { 
-		"vmlib-test/**.cpp",
-		"vmlib-test/**.hpp",
-		"vmlib-test/**.hxx",
-		"vmlib-test/**.inl"
-	}
+	files( "fontstash/src/*.cpp" )
 
-	kind "ConsoleApp"
-	location "vmlib-test"
-
-	files( sources )
-
-	links "vmlib"
-	links "x-catch2"
-
-	files( sources )
 
 --EOF
