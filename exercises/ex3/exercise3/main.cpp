@@ -78,6 +78,8 @@ int main() try
 	glfwWindowHint( GLFW_SRGB_CAPABLE, GLFW_TRUE );
 	glfwWindowHint( GLFW_DOUBLEBUFFER, GLFW_TRUE );
 
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
+
 	//glfwWindowHint( GLFW_RESIZABLE, GLFW_FALSE );
 
 #	if !defined(__APPLE__)
@@ -151,6 +153,7 @@ int main() try
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_CULL_FACE);
 	glClearColor(0.2f, 0.2f, 0.2f, 0.f);
+	glEnable(GL_DEPTH_TEST);
 	// endofTODO
 
 	OGL_CHECKPOINT_ALWAYS();
@@ -173,6 +176,7 @@ int main() try
 	state.prog = &prog;
 	state.camControl.radius = 10.f;
 
+
 	// Animation state
 	auto last = Clock::now();
 
@@ -181,23 +185,31 @@ int main() try
 	// Create vertex buffers and VAO
 	//TODO: create VBOs and VAO
 
-	GLuint vao = 0;
-	GLuint positionVBO = 0;
-	GLuint colourVBO = 1;
+	//concatenate vertex positions and colours of 2 cubes
 
-	glGenBuffers(1, &positionVBO);
-	glGenBuffers(1, &colourVBO);
+	GLuint vao = 0;	
+	GLuint positionVBO[2] = { 0 };
+	GLuint colourVBO[2] = { 0 };
 
-	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
+	glGenBuffers(2, positionVBO);
+	glGenBuffers(2, colourVBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubePositions), kCubePositions, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, colourVBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubeColors), kCubeColors, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubePositions), kCubePositions, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, colourVBO[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubeColors), kCubeColors, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO[0]);
 	glVertexAttribPointer(
 		0, //index 0
 		3, GL_FLOAT, GL_FALSE,
@@ -206,7 +218,7 @@ int main() try
 	);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, colourVBO[0]);
 	glVertexAttribPointer(
 		1, //index 1
 		3, GL_FLOAT, GL_FALSE,
@@ -214,6 +226,25 @@ int main() try
 		0
 	);
 	glEnableVertexAttribArray(1);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO[1]);
+	glVertexAttribPointer(
+		2, //index 0
+		3, GL_FLOAT, GL_FALSE,
+		0,
+		0
+	);
+	glEnableVertexAttribArray(2);
+
+	glBindBuffer(GL_ARRAY_BUFFER, colourVBO[1]);
+	glVertexAttribPointer(
+		3, //index 1
+		3, GL_FLOAT, GL_FALSE,
+		0,
+		0
+	);
+	glEnableVertexAttribArray(3);
 
 	//glDeleteBuffers(1, &positionVBO);
 	//glDeleteBuffers(1, &colourVBO);
@@ -272,11 +303,20 @@ int main() try
 			state.camControl.radius = 0.1f;
 
 		// Update: compute matrices
+		
 		//TODO: define and compute projCameraWorld matrix
 
 		Mat44f model2World = make_rotation_y(angle);
 
-		Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
+		Mat44f model2World2 = make_rotation_y(angle) * make_translation({ 3.f, 0.f, 0.f });
+
+		Mat44f Rx = make_rotation_x(state.camControl.theta);
+		Mat44f Ry = make_rotation_y(state.camControl.phi);
+		Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius });
+
+		Mat44f world2Camera = Rx * Ry * T;
+
+		//Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
 
 		Mat44f projection = make_perspective_projection(
 			60 * kPi_/180.f, //FOV:60 converted to radians
@@ -285,13 +325,10 @@ int main() try
 			100.f //far plane
 		);
 
+		Mat44f projCameraWorld = projection * (world2Camera * model2World);
 
-		Mat44f cameraWorld = world2Camera * model2World;
-		Mat44f projCameraWorld = projection * cameraWorld;
+		Mat44f projCameraWorld2 = projection * (world2Camera * model2World2); //second cube
 
-		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld.v);
-
-		
 		// endofTODO
 
 
@@ -302,15 +339,21 @@ int main() try
 		//TODO: draw frame
 
 		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram(prog.programId());
 
-		static float const baseColor[]{ 0.2f, 1.f, 1.f };
+		static float const baseColor[]{ 0.2f, 0.2f, 1.f };
 
-		glUniform3fv(0, 1, baseColor);
+		glUniform3fv(5, 1, baseColor);
+
+		glGetError();//pass computed matrix to OpenGL
 
 		glBindVertexArray(vao);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3*2*6);
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld.v);
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 2 * 6);
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld2.v);
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 2 * 6);
 
 		glBindVertexArray(0);
 		glUseProgram(0);

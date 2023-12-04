@@ -21,10 +21,34 @@
 namespace
 {
 	constexpr char const* kWindowTitle = "COMP3811 - CW2";
+
+	constexpr float kPi_ = 3.1415926f;
+	constexpr float kMovementPerSecond_ = 5.f; // units per second
+	constexpr float kMouseSensitivity_ = 0.01f; // radians per pixel
 	
+	//CAMERA STRUCT
+	struct State_
+	{
+		ShaderProgram* prog;
+
+		struct CamCtrl_
+		{
+			bool cameraActive;
+			bool actionZoomIn, actionZoomOut;
+
+			float phi, theta;
+			float radius;
+
+			float lastX, lastY;
+		} camControl;
+	};
+
+
 	void glfw_callback_error_( int, char const* );
 
 	void glfw_callback_key_( GLFWwindow*, int, int, int, int );
+
+	void glfw_callback_motion_(GLFWwindow*, double, double);
 
 	struct GLFWCleanupHelper
 	{
@@ -55,6 +79,9 @@ int main() try
 
 	glfwWindowHint( GLFW_SRGB_CAPABLE, GLFW_TRUE );
 	glfwWindowHint( GLFW_DOUBLEBUFFER, GLFW_TRUE );
+
+	glfwWindowHint(GLFW_DEPTH_BITS, 24); // 24-bit depth buffer added for depth mapping
+
 
 	//glfwWindowHint( GLFW_RESIZABLE, GLFW_FALSE );
 
@@ -91,6 +118,17 @@ int main() try
 	// Set up event handling
 	// TODO: Additional event handling setup
 
+
+	State_ state;
+	glfwSetWindowUserPointer(window, &state);
+
+	glfwSetKeyCallback(window, &glfw_callback_key_);
+	glfwSetCursorPosCallback(window, &glfw_callback_motion_);
+
+
+
+	// ENDOF TODO
+
 	glfwSetKeyCallback( window, &glfw_callback_key_ );
 
 	// Set up drawing stuff
@@ -117,6 +155,13 @@ int main() try
 
 	// TODO: global GL setup goes here
 
+	glEnable(GL_FRAMEBUFFER_SRGB);
+	glEnable(GL_CULL_FACE);
+	glClearColor(0.2f, 0.2f, 0.2f, 0.f);
+	glEnable(GL_DEPTH_TEST); // Depth testing added for depth mapping
+
+	// ENDOF TODO
+
 	OGL_CHECKPOINT_ALWAYS();
 
 	// Get actual framebuffer size.
@@ -133,7 +178,46 @@ int main() try
 	
 	// TODO: global GL setup goes here
 
+	//not sure why there are two global setups
+	glEnable(GL_FRAMEBUFFER_SRGB);
+	glEnable(GL_CULL_FACE);
+	glClearColor(0.2f, 0.2f, 0.2f, 0.f);
+	glEnable(GL_DEPTH_TEST);
+
+	// ENDOF TODO
+
 	OGL_CHECKPOINT_ALWAYS();
+
+
+	// Get actual framebuffer size.
+	// This can be different from the window size, as standard window
+	// decorations (title bar, borders, ...) may be included in the window size
+	// but not be part of the drawable surface area.
+	int iwidth, iheight;
+	glfwGetFramebufferSize(window, &iwidth, &iheight);
+
+	glViewport(0, 0, iwidth, iheight);
+
+	// Load shader program
+	ShaderProgram prog({
+		{ GL_VERTEX_SHADER, "assets/default.vert" },
+		{ GL_FRAGMENT_SHADER, "assets/default.frag" }
+		});
+
+	state.prog = &prog;
+	state.camControl.radius = 10.f;
+
+
+	// Animation state
+	auto last = Clock::now();
+
+	float angle = 0.f;
+
+	// Create vertex buffers and VAO
+	//TODO: create VBOs and VAO for mesh loading
+
+
+	//endofTODO
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
@@ -167,10 +251,61 @@ int main() try
 		// Update state
 		//TODO: update state
 
+		auto const now = Clock::now();
+		float dt = std::chrono::duration_cast<Secondsf>(now - last).count();
+		last = now;
+
+
+		angle += dt * kPi_ * 0.3f;
+		if (angle >= 2.f * kPi_)
+			angle -= 2.f * kPi_;
+
+		// Update camera state
+		if (state.camControl.actionZoomIn)
+			state.camControl.radius -= kMovementPerSecond_ * dt;
+		else if (state.camControl.actionZoomOut)
+			state.camControl.radius += kMovementPerSecond_ * dt;
+
+		if (state.camControl.radius <= 0.1f)
+			state.camControl.radius = 0.1f;
+
+		// Update: compute matrices
+
+		//TODO: define and compute projCameraWorld matrix
+
+		Mat44f model2World = make_rotation_y(angle);
+
+		Mat44f model2World2 = make_rotation_y(angle) * make_translation({ 3.f, 0.f, 0.f });
+
+		Mat44f Rx = make_rotation_x(state.camControl.theta);
+		Mat44f Ry = make_rotation_y(state.camControl.phi);
+		Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius });
+
+		Mat44f world2Camera = Rx * Ry * T;
+
+		//Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
+
+		Mat44f projection = make_perspective_projection(
+			60 * kPi_ / 180.f, //FOV:60 converted to radians
+			fbwidth / float(fbheight), //aspect ratio
+			0.1f, //near plane
+			100.f //far plane
+		);
+
+		Mat44f projCameraWorld = projection * (world2Camera * model2World);
+
+		Mat44f projCameraWorld2 = projection * (world2Camera * model2World2); //second cube
+
+		// ENDOF TODO
+
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
 		//TODO: draw frame
+
+
+
+		// ENDOF TODO
 
 		OGL_CHECKPOINT_DEBUG();
 
@@ -180,6 +315,9 @@ int main() try
 
 	// Cleanup.
 	//TODO: additional cleanup
+
+
+	// ENDOF TODO
 	
 	return 0;
 }
@@ -199,12 +337,87 @@ namespace
 		std::fprintf( stderr, "GLFW error: %s (%d)\n", aErrDesc, aErrNum );
 	}
 
-	void glfw_callback_key_( GLFWwindow* aWindow, int aKey, int, int aAction, int )
+	void glfw_callback_key_(GLFWwindow* aWindow, int aKey, int, int aAction, int)
 	{
-		if( GLFW_KEY_ESCAPE == aKey && GLFW_PRESS == aAction )
+		if (GLFW_KEY_ESCAPE == aKey && GLFW_PRESS == aAction)
 		{
-			glfwSetWindowShouldClose( aWindow, GLFW_TRUE );
+			glfwSetWindowShouldClose(aWindow, GLFW_TRUE);
 			return;
+		}
+
+		if (auto* state = static_cast<State_*>(glfwGetWindowUserPointer(aWindow)))
+		{
+			// R-key reloads shaders.
+			if (GLFW_KEY_R == aKey && GLFW_PRESS == aAction)
+			{
+				if (state->prog)
+				{
+					try
+					{
+						state->prog->reload();
+						std::fprintf(stderr, "Shaders reloaded and recompiled.\n");
+					}
+					catch (std::exception const& eErr)
+					{
+						std::fprintf(stderr, "Error when reloading shader:\n");
+						std::fprintf(stderr, "%s\n", eErr.what());
+						std::fprintf(stderr, "Keeping old shader.\n");
+					}
+				}
+			}
+
+			// Space toggles camera
+			if (GLFW_KEY_SPACE == aKey && GLFW_PRESS == aAction)
+			{
+				state->camControl.cameraActive = !state->camControl.cameraActive;
+
+				if (state->camControl.cameraActive)
+					glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+				else
+					glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			}
+
+			// Camera controls if camera is active
+			if (state->camControl.cameraActive)
+			{
+				if (GLFW_KEY_W == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionZoomIn = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionZoomIn = false;
+				}
+				else if (GLFW_KEY_S == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionZoomOut = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionZoomOut = false;
+				}
+			}
+		}
+	}
+
+	void glfw_callback_motion_(GLFWwindow* aWindow, double aX, double aY)
+	{
+		if (auto* state = static_cast<State_*>(glfwGetWindowUserPointer(aWindow)))
+		{
+			if (state->camControl.cameraActive)
+			{
+				auto const dx = float(aX - state->camControl.lastX);
+				auto const dy = float(aY - state->camControl.lastY);
+
+				state->camControl.phi += dx * kMouseSensitivity_;
+
+				state->camControl.theta += dy * kMouseSensitivity_;
+				if (state->camControl.theta > kPi_ / 2.f)
+					state->camControl.theta = kPi_ / 2.f;
+				else if (state->camControl.theta < -kPi_ / 2.f)
+					state->camControl.theta = -kPi_ / 2.f;
+			}
+
+			state->camControl.lastX = float(aX);
+			state->camControl.lastY = float(aY);
 		}
 	}
 

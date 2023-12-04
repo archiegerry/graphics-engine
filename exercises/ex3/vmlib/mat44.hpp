@@ -157,26 +157,27 @@ Mat44f make_translation(Vec3f aTranslation) noexcept
 }
 
 inline
-Mat44f make_perspective_projection( float aFovInRadians, float aAspect, float aNear, float aFar ) noexcept
+Mat44f make_perspective_projection(float aFovInRadians, float aAspect, float aNear, float aFar) noexcept
 {
+	if (aAspect == 0)
+	{
+		return kIdentity44f;
+	}
 
-	float aFovInDegrees = aFovInRadians * (180.0f / 3.14159265358979323846f);
-
-	float tan_of_half_fov = std::tan(aFovInDegrees / 2.0f);
-	float scale_of_x = 1/(aAspect * tan_of_half_fov);
-	float scale_of_y = 1/tan_of_half_fov;
-
-	float range_of_deapth = aFar - aNear;
+	float s = 1.0f / std::tan(aFovInRadians / 2.0f);
 
 	Mat44f perspectiveprojectionMatrix = kIdentity44f;
 
-	perspectiveprojectionMatrix(0, 0) = scale_of_x;
-	perspectiveprojectionMatrix(1, 1) = scale_of_y;
-	perspectiveprojectionMatrix(2, 2) = -((aFar + aNear) / range_of_deapth);
-	perspectiveprojectionMatrix(2, 3) = -((2 * aFar * aNear) / range_of_deapth);
+	perspectiveprojectionMatrix(0, 0) = s / aAspect;
+	perspectiveprojectionMatrix(1, 1) = s;
+	perspectiveprojectionMatrix(2, 2) = -(aFar + aNear) / (aFar - aNear);
+	perspectiveprojectionMatrix(2, 3) = - 2.0f * (aFar * aNear) / (aFar - aNear);
+	perspectiveprojectionMatrix(3, 2) = -1.0f;
+	perspectiveprojectionMatrix(3, 3) = 0.f;
 
-	return perspectiveprojectionMatrix;
+	return perspectiveprojectionMatrix;	
 }
+
 
 
 
