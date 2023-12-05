@@ -17,17 +17,23 @@
 
 #include "defaults.hpp"
 
+#include "cylinder.hpp"
+#include "cone.hpp"
+#include "loadobj.hpp"
+#include "simple_mesh.hpp"
+
+#include "cube.hpp"
+
 
 namespace
 {
 	constexpr char const* kWindowTitle = "COMP3811 - CW2";
 
 	constexpr float kPi_ = 3.1415926f;
-	constexpr float kMovementPerSecond_ = 5.f; // units per second
-	constexpr float kMouseSensitivity_ = 0.01f; // radians per pixel
-	
-	//CAMERA STRUCT
-	struct State_
+
+	float kMovementPerSecond_ = 5.f; // units per second
+	float kMouseSensitivity_ = 0.01f; // radians per pixel
+	struct State_ //struct for camera control
 	{
 		ShaderProgram* prog;
 
@@ -35,20 +41,23 @@ namespace
 		{
 			bool cameraActive;
 			bool actionZoomIn, actionZoomOut;
+			bool actionZoomleft, actionZoomRight;
+			bool actionMoveForward, actionMoveBackward;
+			bool actionMoveLeft, actionMoveRight;
+			bool actionMoveUp, actionMoveDown;
 
 			float phi, theta;
 			float radius;
+			Vec3f movementVec;
 
 			float lastX, lastY;
 		} camControl;
 	};
 
-
 	void glfw_callback_error_( int, char const* );
-
 	void glfw_callback_key_( GLFWwindow*, int, int, int, int );
 
-	void glfw_callback_motion_(GLFWwindow*, double, double);
+	void glfw_callback_motion_(GLFWwindow*, double, double); //function for mouse motion
 
 	struct GLFWCleanupHelper
 	{
@@ -80,9 +89,6 @@ int main() try
 	glfwWindowHint( GLFW_SRGB_CAPABLE, GLFW_TRUE );
 	glfwWindowHint( GLFW_DOUBLEBUFFER, GLFW_TRUE );
 
-	glfwWindowHint(GLFW_DEPTH_BITS, 24); // 24-bit depth buffer added for depth mapping
-
-
 	//glfwWindowHint( GLFW_RESIZABLE, GLFW_FALSE );
 
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
@@ -90,7 +96,7 @@ int main() try
 	glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE );
 	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 
-	glfwWindowHint( GLFW_DEPTH_BITS, 24 );
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
 #	if !defined(NDEBUG)
 	// When building in debug mode, request an OpenGL debug context. This
@@ -116,18 +122,14 @@ int main() try
 	GLFWWindowDeleter windowDeleter{ window };
 
 	// Set up event handling
-	// TODO: Additional event handling setup
+	State_ state{};
 
-
-	State_ state;
+	//TODO: Additional event handling setup
+	//setting up keyboard event handling
 	glfwSetWindowUserPointer(window, &state);
-
 	glfwSetKeyCallback(window, &glfw_callback_key_);
-	glfwSetCursorPosCallback(window, &glfw_callback_motion_);
-
-
-
-	// ENDOF TODO
+	glfwSetCursorPosCallback(window, &glfw_callback_motion_); //!!need to make this frame-rate independent
+	//endofTODO
 
 	glfwSetKeyCallback( window, &glfw_callback_key_ );
 
@@ -154,13 +156,11 @@ int main() try
 	OGL_CHECKPOINT_ALWAYS();
 
 	// TODO: global GL setup goes here
-
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_CULL_FACE);
-	glClearColor(0.2f, 0.2f, 0.2f, 0.f);
-	glEnable(GL_DEPTH_TEST); // Depth testing added for depth mapping
-
-	// ENDOF TODO
+	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
+	glEnable(GL_DEPTH_TEST);
+	//endofTODO
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -173,51 +173,81 @@ int main() try
 
 	glViewport( 0, 0, iwidth, iheight );
 
-	// Other initialization & loading
-	OGL_CHECKPOINT_ALWAYS();
-	
-	// TODO: global GL setup goes here
-
-	//not sure why there are two global setups
-	glEnable(GL_FRAMEBUFFER_SRGB);
-	glEnable(GL_CULL_FACE);
-	glClearColor(0.2f, 0.2f, 0.2f, 0.f);
-	glEnable(GL_DEPTH_TEST);
-
-	// ENDOF TODO
-
-	OGL_CHECKPOINT_ALWAYS();
-
-
-	// Get actual framebuffer size.
-	// This can be different from the window size, as standard window
-	// decorations (title bar, borders, ...) may be included in the window size
-	// but not be part of the drawable surface area.
-	int iwidth, iheight;
-	glfwGetFramebufferSize(window, &iwidth, &iheight);
-
-	glViewport(0, 0, iwidth, iheight);
-
-	// Load shader program
+	//load shader program
 	ShaderProgram prog({
 		{ GL_VERTEX_SHADER, "assets/default.vert" },
 		{ GL_FRAGMENT_SHADER, "assets/default.frag" }
 		});
 
-	state.prog = &prog;
-	state.camControl.radius = 10.f;
+	state.prog = &prog; //set shader program to state
+	state.camControl.radius = 10.f; //set initial radius
 
-
-	// Animation state
 	auto last = Clock::now();
-
 	float angle = 0.f;
 
-	// Create vertex buffers and VAO
-	//TODO: create VBOs and VAO for mesh loading
+
+	//-----------------CUBE CREATION-----------------//
+
+	/*
+	GLuint vao = 0;
+	GLuint positionVBO = 0;
+	GLuint colourVBO = 0;
+
+	glGenBuffers(1, &positionVBO);
+	glGenBuffers(1, &colourVBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubePositions), kCubePositions, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubeColors), kCubeColors, GL_STATIC_DRAW);
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
+	glVertexAttribPointer(
+		0, //index 0
+		3, GL_FLOAT, GL_FALSE,
+		0,
+		0
+	);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
+	glVertexAttribPointer(
+		1, //index 1
+		3, GL_FLOAT, GL_FALSE,
+		0,
+		0
+	);
+	glEnableVertexAttribArray(1);
+
+	//glDeleteBuffers(1, &positionVBO);
+	//glDeleteBuffers(1, &colourVBO);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	*/
+
+	//-----------------CYLINDER CREATION-----------------//
+	/*
+	auto testCylinder = make_cylinder(true, 16, { 0.f, 1.f, 0.f }, make_rotation_z(3.141592f / 3.f) * make_scaling(10.f, 1.f, 0.1f));
+	GLuint vao = create_vao(testCylinder);
+	std::size_t vertexCount = testCylinder.positions.size();
+	*/
 
 
-	//endofTODO
+	auto armadillo = load_wavefront_obj("assets\\Armadillo.obj");
+	GLuint vao = create_vao(armadillo);
+	std::size_t vertexCount = armadillo.positions.size();
+
+
+
+	// Other initialization & loading
+	OGL_CHECKPOINT_ALWAYS();
+	
+
+	OGL_CHECKPOINT_ALWAYS();
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
@@ -248,38 +278,50 @@ int main() try
 			glViewport( 0, 0, nwidth, nheight );
 		}
 
-		// Update state
 		//TODO: update state
-
 		auto const now = Clock::now();
-		float dt = std::chrono::duration_cast<Secondsf>(now - last).count();
+		float dt = std::chrono::duration_cast<Secondsf>(now - last).count(); //difference in time since last frame
 		last = now;
-
 
 		angle += dt * kPi_ * 0.3f;
 		if (angle >= 2.f * kPi_)
 			angle -= 2.f * kPi_;
 
-		// Update camera state
-		if (state.camControl.actionZoomIn)
-			state.camControl.radius -= kMovementPerSecond_ * dt;
-		else if (state.camControl.actionZoomOut)
-			state.camControl.radius += kMovementPerSecond_ * dt;
 
-		if (state.camControl.radius <= 0.1f)
-			state.camControl.radius = 0.1f;
-
-		// Update: compute matrices
-
-		//TODO: define and compute projCameraWorld matrix
-
-		Mat44f model2World = make_rotation_y(angle);
-
-		Mat44f model2World2 = make_rotation_y(angle) * make_translation({ 3.f, 0.f, 0.f });
+		Mat44f model2World = make_rotation_y(0);
 
 		Mat44f Rx = make_rotation_x(state.camControl.theta);
 		Mat44f Ry = make_rotation_y(state.camControl.phi);
-		Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius });
+		Mat44f T = kIdentity44f;
+
+		//camera movement vector is added to current movement
+		if (state.camControl.actionMoveForward)
+		{
+			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+			//state.camControl.movementVec.x += kMovementPerSecond_ * dt * sin(state.camControl.theta);
+			//state.camControl.movementVec.z += kMovementPerSecond_ * dt * cos(state.camControl.theta);
+		}
+		else if (state.camControl.actionMoveBackward)
+		{
+			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+		}
+		else if (state.camControl.actionMoveLeft)
+		{
+			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+		}
+		else if (state.camControl.actionMoveRight)
+		{
+			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+		}
+		else if (state.camControl.actionMoveUp)
+		{
+			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
+		}
+		else if (state.camControl.actionMoveDown)
+		{
+			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
+		}
+		//T = make_translation({ 0.f, 0.f, -10.f });
 
 		Mat44f world2Camera = Rx * Ry * T;
 
@@ -293,19 +335,32 @@ int main() try
 		);
 
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
-
-		Mat44f projCameraWorld2 = projection * (world2Camera * model2World2); //second cube
-
-		// ENDOF TODO
+		//ENDOF TODO
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
 		//TODO: draw frame
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glUseProgram(prog.programId());
 
+		static float const baseColor[]{ 0.2f, 0.2f, 0.2f };
 
+		glUniform3fv(5, 1, baseColor);
 
-		// ENDOF TODO
+		glBindVertexArray(vao);
+
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld.v);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wireframe mode, disable CULL_FACE to see the back of the object
+		glDisable(GL_CULL_FACE);
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		//ENDOF TODO
 
 		OGL_CHECKPOINT_DEBUG();
 
@@ -315,9 +370,6 @@ int main() try
 
 	// Cleanup.
 	//TODO: additional cleanup
-
-
-	// ENDOF TODO
 	
 	return 0;
 }
@@ -366,6 +418,18 @@ namespace
 				}
 			}
 
+			// TODO SHIFT INCREASES SPEED
+
+			if (GLFW_KEY_LEFT_SHIFT == aKey && GLFW_PRESS == aAction)
+				kMovementPerSecond_ *= 2.f;
+			else if (GLFW_KEY_LEFT_SHIFT == aKey && GLFW_RELEASE == aAction)
+				kMovementPerSecond_ /= 2.f;
+
+
+			// TODO CTRL DECREASES SPEED
+
+
+
 			// Space toggles camera
 			if (GLFW_KEY_SPACE == aKey && GLFW_PRESS == aAction)
 			{
@@ -383,16 +447,58 @@ namespace
 				if (GLFW_KEY_W == aKey)
 				{
 					if (GLFW_PRESS == aAction)
-						state->camControl.actionZoomIn = true;
+						state->camControl.actionMoveForward = true;
 					else if (GLFW_RELEASE == aAction)
-						state->camControl.actionZoomIn = false;
+						state->camControl.actionMoveForward = false;
 				}
 				else if (GLFW_KEY_S == aKey)
 				{
 					if (GLFW_PRESS == aAction)
-						state->camControl.actionZoomOut = true;
+						state->camControl.actionMoveBackward = true;
 					else if (GLFW_RELEASE == aAction)
-						state->camControl.actionZoomOut = false;
+						state->camControl.actionMoveBackward = false;
+				}
+				else if (GLFW_KEY_A == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveLeft = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveLeft = false;
+				}
+				else if (GLFW_KEY_D == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveRight = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveRight = false;
+				}
+				else if (GLFW_KEY_Q == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveDown = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveDown = false;
+				}
+				else if (GLFW_KEY_E == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveUp = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveUp = false;
+				}
+				else if (GLFW_KEY_RIGHT_SHIFT == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						kMovementPerSecond_ *= 2.f;
+					else if (GLFW_RELEASE == aAction)
+						kMovementPerSecond_ /= 2.f;
+				}
+				else if (GLFW_KEY_RIGHT_CONTROL == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						kMovementPerSecond_ /= 2.f;
+					else if (GLFW_RELEASE == aAction)
+						kMovementPerSecond_ *= 2.f;
 				}
 			}
 		}
