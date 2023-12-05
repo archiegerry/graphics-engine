@@ -204,3 +204,113 @@ TEST_CASE("Y-axis rotation", "[mat44]")
 		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
 	}
 }
+
+TEST_CASE("Z-axis rotation", "[mat44]")
+{
+	static constexpr float kEps_ = 1e-3f;
+
+	using namespace Catch::Matchers;
+
+	SECTION("Rotate z-coordinate of identity vector by 45 degrees")
+	{
+		Vec4f vector = Vec4f{ 1.f, 0.f, 0.f, 1.f };
+		Mat44f rotationMatrix = make_rotation_z(45.f);
+		auto const result = rotationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(0.5253f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(0.8509f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(0.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+
+	SECTION("Rotate z-coordinate of identity vector by 90 degrees")
+	{
+		Vec4f vector = Vec4f{ 1.f, 0.f, 0.f, 1.f };
+		Mat44f rotationMatrix = make_rotation_z(90.f);
+		auto const result = rotationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(-0.4480f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(0.8939f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(0.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+
+	SECTION("Rotate z-coordinate of identity vector by 180 degrees")
+	{
+		Vec4f vector = Vec4f{ 1.f, 0.f, 0.f, 1.f };
+		Mat44f rotationMatrix = make_rotation_z(180.f);
+		auto const result = rotationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(-0.5984f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(-0.8011f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(0.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+
+	SECTION("Rotate z-coordinate of identity vector by 270 degrees")
+	{
+		Vec4f vector = Vec4f{ 1.f, 0.f, 0.f, 1.f };
+		Mat44f rotationMatrix = make_rotation_z(270.f);
+		auto const result = rotationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(0.9843f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(-0.1760f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(0.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+}
+
+TEST_CASE("Matrix translation", "[mat44]")
+{
+	static constexpr float kEps_ = 1e-3f;
+
+	using namespace Catch::Matchers;
+
+	SECTION("Translation along the x")
+	{
+		Vec4f vector = Vec4f{ 1.f, 1.f, 1.f, 1.f };
+		Mat44f translationMatrix = make_translation(Vec3f{3.f, 0.f, 0.f});
+		auto const result = translationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(4.f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(1.f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(1.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+
+	SECTION("Translation along the y")
+	{
+		Vec4f vector = Vec4f{ 1.f, 1.f, 1.f, 1.f };
+		Mat44f translationMatrix = make_translation(Vec3f{ 0.f, 3.f, 0.f });
+		auto const result = translationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(1.f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(4.f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(1.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+
+	SECTION("Translation along the z")
+	{
+		Vec4f vector = Vec4f{ 1.f, 1.f, 1.f, 1.f };
+		Mat44f translationMatrix = make_translation(Vec3f{ 0.f, 0.f, 3.f });
+		auto const result = translationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(1.f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(1.f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(4.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+
+	SECTION("Translation along the x, y and z axes")
+	{
+		Vec4f vector = Vec4f{ 1.f, 1.f, 1.f, 1.f };
+		Mat44f translationMatrix = make_translation(Vec3f{ 3.f, 3.f, 3.f });
+		auto const result = translationMatrix * vector;
+
+		REQUIRE_THAT(result[0], WithinAbs(4.f, kEps_));
+		REQUIRE_THAT(result[1], WithinAbs(4.f, kEps_));
+		REQUIRE_THAT(result[2], WithinAbs(4.f, kEps_));
+		REQUIRE_THAT(result[3], WithinAbs(1.f, kEps_));
+	}
+}
