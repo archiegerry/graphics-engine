@@ -23,6 +23,8 @@
 #include "simple_mesh.hpp"
 
 #include "cube.hpp"
+#include "texture.hpp"
+
 
 
 namespace
@@ -186,60 +188,11 @@ int main() try
 	float angle = 0.f;
 
 
-	//-----------------CUBE CREATION-----------------//
-
-	/*
-	GLuint vao = 0;
-	GLuint positionVBO = 0;
-	GLuint colourVBO = 0;
-
-	glGenBuffers(1, &positionVBO);
-	glGenBuffers(1, &colourVBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubePositions), kCubePositions, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubeColors), kCubeColors, GL_STATIC_DRAW);
-
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
-	glVertexAttribPointer(
-		0, //index 0
-		3, GL_FLOAT, GL_FALSE,
-		0,
-		0
-	);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, colourVBO);
-	glVertexAttribPointer(
-		1, //index 1
-		3, GL_FLOAT, GL_FALSE,
-		0,
-		0
-	);
-	glEnableVertexAttribArray(1);
-
-	//glDeleteBuffers(1, &positionVBO);
-	//glDeleteBuffers(1, &colourVBO);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	*/
-
-	//-----------------CYLINDER CREATION-----------------//
-	/*
-	auto testCylinder = make_cylinder(true, 16, { 0.f, 1.f, 0.f }, make_rotation_z(3.141592f / 3.f) * make_scaling(10.f, 1.f, 0.1f));
-	GLuint vao = create_vao(testCylinder);
-	std::size_t vertexCount = testCylinder.positions.size();
-	*/
-
-
-	auto armadillo = load_wavefront_obj("assets\\Armadillo.obj");
+	auto armadillo = load_wavefront_obj("assets/parlahti.obj");
 	GLuint vao = create_vao(armadillo);
 	std::size_t vertexCount = armadillo.positions.size();
+
+	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
 
 
 
@@ -351,9 +304,12 @@ int main() try
 
 		glBindVertexArray(vao);
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures);
+
 		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld.v);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wireframe mode, disable CULL_FACE to see the back of the object
+		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wireframe mode, disable CULL_FACE to see the back of the object 
 		glDisable(GL_CULL_FACE);
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 

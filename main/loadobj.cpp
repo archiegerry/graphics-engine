@@ -42,6 +42,12 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 				mat.ambient[1],
 				mat.ambient[2]
 				});
+
+			//load the texture from the file in here 
+			ret.textureCoords.emplace_back(Vec2f{
+				result.attributes.texcoords[idx.texcoord_index * 2 + 0],
+				result.attributes.texcoords[idx.texcoord_index * 2 + 1]
+			});
 		}
 	}
 
