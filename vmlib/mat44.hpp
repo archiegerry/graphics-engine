@@ -90,26 +90,11 @@ Vec4f operator*( Mat44f const& aLeft, Vec4f const& aRight ) noexcept
 	return result;
 }
 
-// Functions:
-
-Mat44f invert( Mat44f const& aM ) noexcept;
-
-inline
-Mat44f transpose( Mat44f const& aM ) noexcept
-{
-	Mat44f ret;
-	for( std::size_t i = 0; i < 4; ++i )
-	{
-		for( std::size_t j = 0; j < 4; ++j )
-			ret(j,i) = aM(i,j);
-	}
-	return ret;
-}
-
 inline
 Mat44f make_rotation_x( float aAngle ) noexcept
 {
 	Mat44f rotationMatrix = kIdentity44f;
+
 
 	// Get the cosine and sine of 'aAngle'
 	float cosTheta = std::cos(aAngle);
@@ -184,24 +169,38 @@ Mat44f make_scaling( float aSX, float aSY, float aSZ ) noexcept
 inline
 Mat44f make_perspective_projection( float aFovInRadians, float aAspect, float aNear, float aFar ) noexcept
 {
-	float aFovInDegrees = aFovInRadians * (180.0f / 3.14159265358979323846f);
+	if (aAspect == 0)
+	{
+		return kIdentity44f;
+	}
 
-	float tan_of_half_fov = std::tan(aFovInDegrees / 2.0f);
-	float scale_of_x = 1 / (aAspect * tan_of_half_fov);
-	float scale_of_y = 1 / tan_of_half_fov;
-
-	float range_of_deapth = aFar - aNear;
+	float s = 1.0f / std::tan(aFovInRadians / 2.0f);
 
 	Mat44f perspectiveprojectionMatrix = kIdentity44f;
 
-	perspectiveprojectionMatrix(0, 0) = scale_of_x;
-	perspectiveprojectionMatrix(1, 1) = scale_of_y;
-	perspectiveprojectionMatrix(2, 2) = -((aFar + aNear) / range_of_deapth);
-	perspectiveprojectionMatrix(2, 3) = -((2 * aFar * aNear) / range_of_deapth);
+	perspectiveprojectionMatrix(0, 0) = s / aAspect;
+	perspectiveprojectionMatrix(1, 1) = s;
+	perspectiveprojectionMatrix(2, 2) = -(aFar + aNear) / (aFar - aNear);
+	perspectiveprojectionMatrix(2, 3) = -2.0f * (aFar * aNear) / (aFar - aNear);
+	perspectiveprojectionMatrix(3, 2) = -1.0f;
+	perspectiveprojectionMatrix(3, 3) = 0.f;
 
 	return perspectiveprojectionMatrix;
 }
 
+Mat44f invert(Mat44f const& aM) noexcept;
+
+inline
+Mat44f transpose(Mat44f const& aM) noexcept
+{
+	Mat44f ret;
+	for (std::size_t i = 0; i < 4; ++i)
+	{
+		for (std::size_t j = 0; j < 4; ++j)
+			ret(j, i) = aM(i, j);
+	}
+	return ret;
+}
 
 
 
