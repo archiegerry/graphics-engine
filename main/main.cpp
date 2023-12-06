@@ -17,14 +17,49 @@
 
 #include "defaults.hpp"
 
+#include "cylinder.hpp"
+#include "cone.hpp"
+#include "loadobj.hpp"
+#include "simple_mesh.hpp"
+
+#include "cube.hpp"
+#include "texture.hpp"
+
+
 
 namespace
 {
 	constexpr char const* kWindowTitle = "COMP3811 - CW2";
-	
-	void glfw_callback_error_( int, char const* );
 
+	constexpr float kPi_ = 3.1415926f;
+
+	float kMovementPerSecond_ = 5.f; // units per second
+	float kMouseSensitivity_ = 0.01f; // radians per pixel
+	struct State_ //struct for camera control
+	{
+		ShaderProgram* prog;
+
+		struct CamCtrl_
+		{
+			bool cameraActive;
+			bool actionZoomIn, actionZoomOut;
+			bool actionZoomleft, actionZoomRight;
+			bool actionMoveForward, actionMoveBackward;
+			bool actionMoveLeft, actionMoveRight;
+			bool actionMoveUp, actionMoveDown;
+
+			float phi, theta;
+			float radius;
+			Vec3f movementVec;
+
+			float lastX, lastY;
+		} camControl;
+	};
+
+	void glfw_callback_error_( int, char const* );
 	void glfw_callback_key_( GLFWwindow*, int, int, int, int );
+
+	void glfw_callback_motion_(GLFWwindow*, double, double); //function for mouse motion
 
 	struct GLFWCleanupHelper
 	{
@@ -63,7 +98,7 @@ int main() try
 	glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE );
 	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 
-	glfwWindowHint( GLFW_DEPTH_BITS, 24 );
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
 #	if !defined(NDEBUG)
 	// When building in debug mode, request an OpenGL debug context. This
@@ -89,7 +124,14 @@ int main() try
 	GLFWWindowDeleter windowDeleter{ window };
 
 	// Set up event handling
-	// TODO: Additional event handling setup
+	State_ state{};
+
+	//TODO: Additional event handling setup
+	//setting up keyboard event handling
+	glfwSetWindowUserPointer(window, &state);
+	glfwSetKeyCallback(window, &glfw_callback_key_);
+	glfwSetCursorPosCallback(window, &glfw_callback_motion_); //!!need to make this frame-rate independent
+	//endofTODO
 
 	glfwSetKeyCallback( window, &glfw_callback_key_ );
 
@@ -116,6 +158,11 @@ int main() try
 	OGL_CHECKPOINT_ALWAYS();
 
 	// TODO: global GL setup goes here
+	glEnable(GL_FRAMEBUFFER_SRGB);
+	glEnable(GL_CULL_FACE);
+	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
+	glEnable(GL_DEPTH_TEST);
+	//endofTODO
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -128,10 +175,30 @@ int main() try
 
 	glViewport( 0, 0, iwidth, iheight );
 
+	//load shader program
+	ShaderProgram prog({
+		{ GL_VERTEX_SHADER, "assets/default.vert" },
+		{ GL_FRAGMENT_SHADER, "assets/default.frag" }
+		});
+
+	state.prog = &prog; //set shader program to state
+	state.camControl.radius = 10.f; //set initial radius
+
+	auto last = Clock::now();
+	float angle = 0.f;
+
+
+	auto armadillo = load_wavefront_obj("assets/parlahti.obj");
+	GLuint vao = create_vao(armadillo);
+	std::size_t vertexCount = armadillo.positions.size();
+
+	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
+
+
+
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
 	
-	// TODO: global GL setup goes here
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -164,13 +231,92 @@ int main() try
 			glViewport( 0, 0, nwidth, nheight );
 		}
 
-		// Update state
 		//TODO: update state
+		auto const now = Clock::now();
+		float dt = std::chrono::duration_cast<Secondsf>(now - last).count(); //difference in time since last frame
+		last = now;
+
+		angle += dt * kPi_ * 0.3f;
+		if (angle >= 2.f * kPi_)
+			angle -= 2.f * kPi_;
+
+
+		Mat44f model2World = make_rotation_y(0);
+
+		Mat44f Rx = make_rotation_x(state.camControl.theta);
+		Mat44f Ry = make_rotation_y(state.camControl.phi);
+		Mat44f T = kIdentity44f;
+
+		//camera movement vector is added to current movement
+		if (state.camControl.actionMoveForward)
+		{
+			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+			//state.camControl.movementVec.x += kMovementPerSecond_ * dt * sin(state.camControl.theta);
+			//state.camControl.movementVec.z += kMovementPerSecond_ * dt * cos(state.camControl.theta);
+		}
+		else if (state.camControl.actionMoveBackward)
+		{
+			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+		}
+		else if (state.camControl.actionMoveLeft)
+		{
+			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+		}
+		else if (state.camControl.actionMoveRight)
+		{
+			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+		}
+		else if (state.camControl.actionMoveUp)
+		{
+			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
+		}
+		else if (state.camControl.actionMoveDown)
+		{
+			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
+		}
+		//T = make_translation({ 0.f, 0.f, -10.f });
+
+		Mat44f world2Camera = Rx * Ry * T;
+
+		//Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
+
+		Mat44f projection = make_perspective_projection(
+			60 * kPi_ / 180.f, //FOV:60 converted to radians
+			fbwidth / float(fbheight), //aspect ratio
+			0.1f, //near plane
+			100.f //far plane
+		);
+
+		Mat44f projCameraWorld = projection * (world2Camera * model2World);
+		//ENDOF TODO
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
 		//TODO: draw frame
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glUseProgram(prog.programId());
+
+		static float const baseColor[]{ 0.2f, 0.2f, 0.2f };
+
+		glUniform3fv(5, 1, baseColor);
+
+		glBindVertexArray(vao);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures);
+
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld.v);
+
+		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wireframe mode, disable CULL_FACE to see the back of the object 
+		glDisable(GL_CULL_FACE);
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		//ENDOF TODO
 
 		OGL_CHECKPOINT_DEBUG();
 
@@ -199,12 +345,141 @@ namespace
 		std::fprintf( stderr, "GLFW error: %s (%d)\n", aErrDesc, aErrNum );
 	}
 
-	void glfw_callback_key_( GLFWwindow* aWindow, int aKey, int, int aAction, int )
+	void glfw_callback_key_(GLFWwindow* aWindow, int aKey, int, int aAction, int)
 	{
-		if( GLFW_KEY_ESCAPE == aKey && GLFW_PRESS == aAction )
+		if (GLFW_KEY_ESCAPE == aKey && GLFW_PRESS == aAction)
 		{
-			glfwSetWindowShouldClose( aWindow, GLFW_TRUE );
+			glfwSetWindowShouldClose(aWindow, GLFW_TRUE);
 			return;
+		}
+
+		if (auto* state = static_cast<State_*>(glfwGetWindowUserPointer(aWindow)))
+		{
+			// R-key reloads shaders.
+			if (GLFW_KEY_R == aKey && GLFW_PRESS == aAction)
+			{
+				if (state->prog)
+				{
+					try
+					{
+						state->prog->reload();
+						std::fprintf(stderr, "Shaders reloaded and recompiled.\n");
+					}
+					catch (std::exception const& eErr)
+					{
+						std::fprintf(stderr, "Error when reloading shader:\n");
+						std::fprintf(stderr, "%s\n", eErr.what());
+						std::fprintf(stderr, "Keeping old shader.\n");
+					}
+				}
+			}
+
+			// TODO SHIFT INCREASES SPEED
+
+			if (GLFW_KEY_LEFT_SHIFT == aKey && GLFW_PRESS == aAction)
+				kMovementPerSecond_ *= 2.f;
+			else if (GLFW_KEY_LEFT_SHIFT == aKey && GLFW_RELEASE == aAction)
+				kMovementPerSecond_ /= 2.f;
+
+
+			// TODO CTRL DECREASES SPEED
+
+
+
+			// Space toggles camera
+			if (GLFW_KEY_SPACE == aKey && GLFW_PRESS == aAction)
+			{
+				state->camControl.cameraActive = !state->camControl.cameraActive;
+
+				if (state->camControl.cameraActive)
+					glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+				else
+					glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			}
+
+			// Camera controls if camera is active
+			if (state->camControl.cameraActive)
+			{
+				if (GLFW_KEY_W == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveForward = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveForward = false;
+				}
+				else if (GLFW_KEY_S == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveBackward = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveBackward = false;
+				}
+				else if (GLFW_KEY_A == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveLeft = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveLeft = false;
+				}
+				else if (GLFW_KEY_D == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveRight = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveRight = false;
+				}
+				else if (GLFW_KEY_Q == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveDown = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveDown = false;
+				}
+				else if (GLFW_KEY_E == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						state->camControl.actionMoveUp = true;
+					else if (GLFW_RELEASE == aAction)
+						state->camControl.actionMoveUp = false;
+				}
+				else if (GLFW_KEY_RIGHT_SHIFT == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						kMovementPerSecond_ *= 2.f;
+					else if (GLFW_RELEASE == aAction)
+						kMovementPerSecond_ /= 2.f;
+				}
+				else if (GLFW_KEY_RIGHT_CONTROL == aKey)
+				{
+					if (GLFW_PRESS == aAction)
+						kMovementPerSecond_ /= 2.f;
+					else if (GLFW_RELEASE == aAction)
+						kMovementPerSecond_ *= 2.f;
+				}
+			}
+		}
+	}
+
+	void glfw_callback_motion_(GLFWwindow* aWindow, double aX, double aY)
+	{
+		if (auto* state = static_cast<State_*>(glfwGetWindowUserPointer(aWindow)))
+		{
+			if (state->camControl.cameraActive)
+			{
+				auto const dx = float(aX - state->camControl.lastX);
+				auto const dy = float(aY - state->camControl.lastY);
+
+				state->camControl.phi += dx * kMouseSensitivity_;
+
+				state->camControl.theta += dy * kMouseSensitivity_;
+				if (state->camControl.theta > kPi_ / 2.f)
+					state->camControl.theta = kPi_ / 2.f;
+				else if (state->camControl.theta < -kPi_ / 2.f)
+					state->camControl.theta = -kPi_ / 2.f;
+			}
+
+			state->camControl.lastX = float(aX);
+			state->camControl.lastY = float(aY);
 		}
 	}
 

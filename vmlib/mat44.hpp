@@ -184,6 +184,11 @@ Mat44f make_scaling( float aSX, float aSY, float aSZ ) noexcept
 inline
 Mat44f make_perspective_projection( float aFovInRadians, float aAspect, float aNear, float aFar ) noexcept
 {
+	if (aAspect == 0)
+	{
+		return kIdentity44f;
+	}
+
 	float aFovInDegrees = aFovInRadians * (180.0f / 3.14159265358979323846f);
 
 	float tan_of_half_fov = std::tan(aFovInDegrees / 2.0f);
