@@ -14,6 +14,7 @@
 
 #include "../vmlib/vec4.hpp"
 #include "../vmlib/mat44.hpp"
+#include "../vmlib/mat33.hpp"
 
 #include "defaults.hpp"
 
@@ -21,6 +22,7 @@
 #include "cone.hpp"
 #include "loadobj.hpp"
 #include "simple_mesh.hpp"
+#include "loadcustom.hpp"
 
 #include "cube.hpp"
 #include "texture.hpp"
@@ -160,8 +162,8 @@ int main() try
 	// TODO: global GL setup goes here
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_CULL_FACE);
-	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
 	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
 	//endofTODO
 
 	OGL_CHECKPOINT_ALWAYS();
@@ -187,14 +189,14 @@ int main() try
 	auto last = Clock::now();
 	float angle = 0.f;
 
-
-	auto armadillo = load_wavefront_obj("assets/parlahti.obj");
+	auto armadillo = load_wavefront_obj("assets\\parlahti.obj");
 	GLuint vao = create_vao(armadillo);
 	std::size_t vertexCount = armadillo.positions.size();
-
+	//printf("vertexcount: %d\n", vertexCount);
+	//auto armadillo = load_simple_binary_mesh("assets\\Armadillo.comp3811bin");
+	//GLuint vao = create_vao(armadillo);
+	//std::size_t vertexCount = armadillo.positions.size();
 	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
-
-
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -242,6 +244,7 @@ int main() try
 
 
 		Mat44f model2World = make_rotation_y(0);
+		Mat33f normalMatrix = mat44_to_mat33(transpose(invert(model2World)));
 
 		Mat44f Rx = make_rotation_x(state.camControl.theta);
 		Mat44f Ry = make_rotation_y(state.camControl.phi);
@@ -250,21 +253,27 @@ int main() try
 		//camera movement vector is added to current movement
 		if (state.camControl.actionMoveForward)
 		{
-			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
-			//state.camControl.movementVec.x += kMovementPerSecond_ * dt * sin(state.camControl.theta);
-			//state.camControl.movementVec.z += kMovementPerSecond_ * dt * cos(state.camControl.theta);
+			state.camControl.movementVec.x -= kMovementPerSecond_* dt * sin(state.camControl.phi);
+			state.camControl.movementVec.z += kMovementPerSecond_* dt * cos(state.camControl.phi);
+			//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
 		}
 		else if (state.camControl.actionMoveBackward)
 		{
-			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+			state.camControl.movementVec.x += kMovementPerSecond_* dt * sin(state.camControl.phi);
+			state.camControl.movementVec.z -= kMovementPerSecond_* dt * cos(state.camControl.phi);
+			//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
 		}
 		else if (state.camControl.actionMoveLeft)
 		{
-			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+			state.camControl.movementVec.x += kMovementPerSecond_ * dt * cos(state.camControl.phi);
+			state.camControl.movementVec.z += kMovementPerSecond_ * dt * sin(state.camControl.phi);
+			//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
 		}
 		else if (state.camControl.actionMoveRight)
 		{
-			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+			state.camControl.movementVec.x -= kMovementPerSecond_ * dt * cos(state.camControl.phi);
+			state.camControl.movementVec.z -= kMovementPerSecond_ * dt * sin(state.camControl.phi);
+			//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
 		}
 		else if (state.camControl.actionMoveUp)
 		{
@@ -274,7 +283,8 @@ int main() try
 		{
 			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
 		}
-		//T = make_translation({ 0.f, 0.f, -10.f });
+
+		T = make_translation(state.camControl.movementVec);
 
 		Mat44f world2Camera = Rx * Ry * T;
 
@@ -294,23 +304,39 @@ int main() try
 		OGL_CHECKPOINT_DEBUG();
 
 		//TODO: draw frame
-		glClear(GL_COLOR_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram(prog.programId());
 
-		static float const baseColor[]{ 0.2f, 0.2f, 0.2f };
+		glUniformMatrix4fv(
+			0,
+			1, GL_TRUE, 
+			projCameraWorld.v);
 
-		glUniform3fv(5, 1, baseColor);
+		//for normals
+		glUniformMatrix3fv(
+			1, 
+			1, GL_TRUE, 
+			normalMatrix.v);
+
+		Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
+
+		glUniform3fv(2, 1, &lightDir.x);
+		glUniform3f(3, 0.9f, 0.9f, 0.9f);
+		glUniform3f(4, 0.05f, 0.05f, 0.05f);
+
+		//static float const baseColor[]{ 0.2f, 0.2f, 0.2f };
+
+		//glUniform3fv(5, 1, baseColor);
 
 		glBindVertexArray(vao);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures);
 
-		glUniformMatrix4fv(0, 1, GL_TRUE, projCameraWorld.v);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wire-frame mode, disable CULL_FACE to see the back of the object
+		//glDisable(GL_CULL_FACE);
 
-		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wireframe mode, disable CULL_FACE to see the back of the object 
-		glDisable(GL_CULL_FACE);
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
 		glBindVertexArray(0);

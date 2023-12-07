@@ -95,8 +95,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="custom_tests.cpp" />
     <ClCompile Include="empty.cpp" />
-    <ClCompile Include="mat44-mult.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vmlib\vmlib.vcxproj">

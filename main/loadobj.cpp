@@ -32,9 +32,14 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 				result.attributes.positions[idx.position_index * 3 + 2]
 				});
 
+			ret.normals.emplace_back(Vec3f{
+				result.attributes.normals[idx.normal_index * 3 + 0],
+				result.attributes.normals[idx.normal_index * 3 + 1],
+				result.attributes.normals[idx.normal_index * 3 + 2]
+				});
+
 			//get the face index by dividing by 3 since each face has 3 indices
 			auto const& mat = result.materials[shape.mesh.material_ids[i / 3]];
-
 
 			//replace the material ambient colour for each vertex
 			ret.colors.emplace_back(Vec3f{
@@ -42,12 +47,11 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 				mat.ambient[1],
 				mat.ambient[2]
 				});
-
 			//load the texture from the file in here 
 			ret.textureCoords.emplace_back(Vec2f{
 				result.attributes.texcoords[idx.texcoord_index * 2 + 0],
 				result.attributes.texcoords[idx.texcoord_index * 2 + 1]
-			});
+				});
 		}
 	}
 
