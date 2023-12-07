@@ -32,7 +32,7 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 				result.attributes.positions[idx.position_index * 3 + 2]
 				});
 
-			ret.positions.emplace_back(Vec3f{
+			ret.normals.emplace_back(Vec3f{
 				result.attributes.normals[idx.normal_index * 3 + 0],
 				result.attributes.normals[idx.normal_index * 3 + 1],
 				result.attributes.normals[idx.normal_index * 3 + 2]
@@ -40,7 +40,6 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 
 			//get the face index by dividing by 3 since each face has 3 indices
 			auto const& mat = result.materials[shape.mesh.material_ids[i / 3]];
-
 
 			//replace the material ambient colour for each vertex
 			ret.colors.emplace_back(Vec3f{

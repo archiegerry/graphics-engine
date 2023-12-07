@@ -160,8 +160,8 @@ int main() try
 	// TODO: global GL setup goes here
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_CULL_FACE);
-	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
 	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
 	//endofTODO
 
 	OGL_CHECKPOINT_ALWAYS();
@@ -190,6 +190,11 @@ int main() try
 	auto armadillo = load_wavefront_obj("assets\\parlahti.obj");
 	GLuint vao = create_vao(armadillo);
 	std::size_t vertexCount = armadillo.positions.size();
+	//printf("vertexcount: %d\n", vertexCount);
+	//auto armadillo = load_simple_binary_mesh("assets\\Armadillo.comp3811bin");
+	//GLuint vao = create_vao(armadillo);
+	//std::size_t vertexCount = armadillo.positions.size();
+
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -324,8 +329,9 @@ int main() try
 
 		glBindVertexArray(vao);
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wireframe mode, disable CULL_FACE to see the back of the object
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wire-frame mode, disable CULL_FACE to see the back of the object
 		//glDisable(GL_CULL_FACE);
+
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
 		glBindVertexArray(0);
