@@ -25,6 +25,8 @@
 #include "loadcustom.hpp"
 
 #include "cube.hpp"
+#include "texture.hpp"
+
 
 
 namespace
@@ -194,7 +196,7 @@ int main() try
 	//auto armadillo = load_simple_binary_mesh("assets\\Armadillo.comp3811bin");
 	//GLuint vao = create_vao(armadillo);
 	//std::size_t vertexCount = armadillo.positions.size();
-
+	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -328,6 +330,9 @@ int main() try
 		//glUniform3fv(5, 1, baseColor);
 
 		glBindVertexArray(vao);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures);
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wire-frame mode, disable CULL_FACE to see the back of the object
 		//glDisable(GL_CULL_FACE);
