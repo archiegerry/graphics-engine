@@ -257,29 +257,29 @@ int main() try
 			state.camControl.movementVec.z += kMovementPerSecond_* dt * cos(state.camControl.phi);
 			//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
 		}
-		else if (state.camControl.actionMoveBackward)
+	    if (state.camControl.actionMoveBackward)
 		{
 			state.camControl.movementVec.x += kMovementPerSecond_* dt * sin(state.camControl.phi);
 			state.camControl.movementVec.z -= kMovementPerSecond_* dt * cos(state.camControl.phi);
 			//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
 		}
-		else if (state.camControl.actionMoveLeft)
+	    if (state.camControl.actionMoveLeft)
 		{
 			state.camControl.movementVec.x += kMovementPerSecond_ * dt * cos(state.camControl.phi);
 			state.camControl.movementVec.z += kMovementPerSecond_ * dt * sin(state.camControl.phi);
 			//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
 		}
-		else if (state.camControl.actionMoveRight)
+	    if (state.camControl.actionMoveRight)
 		{
 			state.camControl.movementVec.x -= kMovementPerSecond_ * dt * cos(state.camControl.phi);
 			state.camControl.movementVec.z -= kMovementPerSecond_ * dt * sin(state.camControl.phi);
 			//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
 		}
-		else if (state.camControl.actionMoveUp)
+	    if (state.camControl.actionMoveUp)
 		{
 			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
 		}
-		else if (state.camControl.actionMoveDown)
+	    if (state.camControl.actionMoveDown)
 		{
 			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
 		}
@@ -409,7 +409,10 @@ namespace
 
 
 			// TODO CTRL DECREASES SPEED
-
+			if (GLFW_KEY_LEFT_CONTROL == aKey && GLFW_PRESS == aAction) 
+				kMovementPerSecond_ /= 2.f;
+			else if (GLFW_KEY_LEFT_CONTROL == aKey && GLFW_RELEASE == aAction)
+				kMovementPerSecond_ *= 2.f;
 
 
 			// Space toggles camera
