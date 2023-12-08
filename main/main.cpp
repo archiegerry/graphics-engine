@@ -189,7 +189,7 @@ int main() try
 	auto last = Clock::now();
 	float angle = 0.f;
 
-	auto armadillo = load_wavefront_obj("assets\\parlahti.obj");
+	auto armadillo = load_wavefront_obj("assets/parlahti.obj");
 	GLuint vao = create_vao(armadillo);
 	std::size_t vertexCount = armadillo.positions.size();
 	//printf("vertexcount: %d\n", vertexCount);
@@ -197,6 +197,20 @@ int main() try
 	//GLuint vao = create_vao(armadillo);
 	//std::size_t vertexCount = armadillo.positions.size();
 	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
+
+	//----------------------------------------------------------------
+	//load shader program for launchpad
+	// ShaderProgram prog2({
+	// 	{ GL_VERTEX_SHADER, "assets/launch.vert" },
+	// 	{ GL_FRAGMENT_SHADER, "assets/launch.frag" }
+	// 	});
+
+	//state.prog = &prog2; //set shader program to state
+
+	// auto launch = load_wavefront_obj("assets/landingpad.obj");
+	// GLuint launch_vao = create_vao(launch);
+	// std::size_t launchVertexCount = launch.positions.size();
+	//-------------------------------------------------------------------
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -330,6 +344,7 @@ int main() try
 		//glUniform3fv(5, 1, baseColor);
 
 		glBindVertexArray(vao);
+		//glBindVertexArray(launch_vao);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures);
@@ -338,9 +353,13 @@ int main() try
 		//glDisable(GL_CULL_FACE);
 
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+		//glDrawArrays(GL_TRIANGLES, 1, launchVertexCount);
 
 		glBindVertexArray(0);
+		//glBindVertexArray(1);
+
 		glUseProgram(0);
+		//glUseProgram(1);
 
 		//ENDOF TODO
 
@@ -527,4 +546,6 @@ namespace
 			glfwDestroyWindow( window );
 	}
 }
+
+//different use program 
 

@@ -65,7 +65,9 @@ endif
 GENERATED :=
 OBJECTS :=
 
+GENERATED += $(OBJDIR)/custom_tests.o
 GENERATED += $(OBJDIR)/empty.o
+OBJECTS += $(OBJDIR)/custom_tests.o
 OBJECTS += $(OBJDIR)/empty.o
 
 # Rules
@@ -130,6 +132,9 @@ endif
 # File Rules
 # #############################################
 
+$(OBJDIR)/custom_tests.o: custom_tests.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/empty.o: empty.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
