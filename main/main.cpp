@@ -27,7 +27,7 @@
 #include "cube.hpp"
 #include "texture.hpp"
 
-
+#include "fontstash.h"
 
 namespace
 {
@@ -73,6 +73,56 @@ namespace
 		GLFWwindow* window;
 	};
 }
+
+namespace
+{
+	// Mesh rendering
+	void mesh_renderer(
+		GLuint vao,
+		size_t vertexCount,
+		State_ const& state,
+		GLuint textureObjectId,
+		GLuint programID,
+		Mat44f projCameraWorld,
+		Mat33f normalMatrix
+		//Mat44f localTransform
+	)
+	{
+		glUseProgram(programID);
+
+		// for camera
+		glUniformMatrix4fv(
+			0,
+			1, GL_TRUE,
+			projCameraWorld.v);
+
+		//for normals
+		glUniformMatrix3fv(
+			1,
+			1, GL_TRUE,
+			normalMatrix.v);
+
+		Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
+
+		glUniform3fv(2, 1, &lightDir.x);      // Ambient 
+		glUniform3f(3, 0.9f, 0.9f, 0.9f);	  // Diffusion
+		glUniform3f(4, 0.05f, 0.05f, 0.05f);  // Spectral
+
+		glBindVertexArray(vao);
+		if (textureObjectId != 0)
+		{	glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textureObjectId);
+		}
+		else
+		{
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+	}
+
+}
+
 
 int main() try
 {
@@ -189,19 +239,52 @@ int main() try
 	auto last = Clock::now();
 	float angle = 0.f;
 
-	auto armadillo = load_wavefront_obj("assets\\parlahti.obj");
-	GLuint vao = create_vao(armadillo);
-	std::size_t vertexCount = armadillo.positions.size();
-	//printf("vertexcount: %d\n", vertexCount);
-	//auto armadillo = load_simple_binary_mesh("assets\\Armadillo.comp3811bin");
-	//GLuint vao = create_vao(armadillo);
-	//std::size_t vertexCount = armadillo.positions.size();
+	auto parlahti = load_wavefront_obj("assets/parlahti.obj");
+	GLuint vao = create_vao(parlahti);
+	std::size_t vertexCount = parlahti.positions.size();
+
 	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
 
-	// Other initialization & loading
-	OGL_CHECKPOINT_ALWAYS();
-	
+	//----------------------------------------------------------------
+	//load shader program for launchpad
+	 ShaderProgram prog2({
+	 	{ GL_VERTEX_SHADER, "assets/launch.vert" }, 
+	 	{ GL_FRAGMENT_SHADER, "assets/launch.frag" } 
+	 	}); 
 
+	//state.prog = &prog2;  //set shader program to state
+
+	 // Load the launchpad
+	 auto launch = load_wavefront_obj("assets/landingpad.obj");
+	 std::size_t launchVertexCount = launch.positions.size();
+	 std::vector<Vec3f> positions = launch.positions;
+
+	 // Move the 1st launch object
+	 for (size_t i = 0; i < launchVertexCount; i++)
+	 {
+		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, -50.f };
+	 }
+
+	 // Create a VAO for the first launchpad
+	 GLuint launch_vao_1 = create_vao(launch);
+
+	 // Return positions back to normal
+	 launch.positions = positions;
+
+	 // Move the 1st launch object
+	 for (size_t i = 0; i < launchVertexCount; i++)
+	 {
+		 launch.positions[i] = launch.positions[i] + Vec3f{ -20.f, -0.975f, -15.f };
+	 }
+	 // Create a VAO for the first launchpad
+	 GLuint launch_vao_2 = create_vao(launch);
+
+	//-------------------------------------------------------------------
+
+	 // Draw all arrays
+
+
+	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
 
 	// Main loop
@@ -241,7 +324,6 @@ int main() try
 		angle += dt * kPi_ * 0.3f;
 		if (angle >= 2.f * kPi_)
 			angle -= 2.f * kPi_;
-
 
 		Mat44f model2World = make_rotation_y(0);
 		Mat33f normalMatrix = mat44_to_mat33(transpose(invert(model2World)));
@@ -291,56 +373,36 @@ int main() try
 		//Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
 
 		Mat44f projection = make_perspective_projection(
-			60 * kPi_ / 180.f, //FOV:60 converted to radians
+			60 * kPi_ / 180.f,			//FOV:60 converted to radians
 			fbwidth / float(fbheight), //aspect ratio
-			0.1f, //near plane
-			100.f //far plane
+			0.1f,					  //near plane
+			100.f					 //far plane
 		);
 
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
+
 		//ENDOF TODO
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
 		//TODO: draw frame
-		//glClear(GL_COLOR_BUFFER_BIT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glUseProgram(prog.programId());
+	
+		// Draw the map
+		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
 
-		glUniformMatrix4fv(
-			0,
-			1, GL_TRUE, 
-			projCameraWorld.v);
+		// Draw the first launchpad
+		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		//for normals
-		glUniformMatrix3fv(
-			1, 
-			1, GL_TRUE, 
-			normalMatrix.v);
-
-		Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
-
-		glUniform3fv(2, 1, &lightDir.x);
-		glUniform3f(3, 0.9f, 0.9f, 0.9f);
-		glUniform3f(4, 0.05f, 0.05f, 0.05f);
-
-		//static float const baseColor[]{ 0.2f, 0.2f, 0.2f };
-
-		//glUniform3fv(5, 1, baseColor);
-
-		glBindVertexArray(vao);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures);
-
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //enable wire-frame mode, disable CULL_FACE to see the back of the object
-		//glDisable(GL_CULL_FACE);
-
-		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+		// Draw the second launchpad
+		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		glBindVertexArray(0);
+		//glBindVertexArray(1);
+
 		glUseProgram(0);
+		//glUseProgram(1);
 
 		//ENDOF TODO
 
@@ -362,7 +424,6 @@ catch( std::exception const& eErr )
 	std::fprintf( stderr, "Bye.\n" );
 	return 1;
 }
-
 
 namespace
 {
@@ -527,4 +588,6 @@ namespace
 			glfwDestroyWindow( window );
 	}
 }
+
+//different use program 
 

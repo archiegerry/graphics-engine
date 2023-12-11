@@ -14,7 +14,6 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 		throw Error("Failed to load OBJ file: '%s' \nError: '%s'", aPath, result.error.code.message().c_str());
 	}
 
-
 	//we must triangulate all faces that aren't triangles since the most complex shape openGL can draw is a triangle
 	rapidobj::Triangulate(result);
 
@@ -43,15 +42,19 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 
 			//replace the material ambient colour for each vertex
 			ret.colors.emplace_back(Vec3f{
-				mat.ambient[0],
-				mat.ambient[1],
-				mat.ambient[2]
+				mat.ambient[0] + mat.diffuse[0],
+				mat.ambient[1] + mat.diffuse[1],
+				mat.ambient[2] + mat.diffuse[2]
 				});
+
+			
 			//load the texture from the file in here 
 			ret.textureCoords.emplace_back(Vec2f{
 				result.attributes.texcoords[idx.texcoord_index * 2 + 0],
 				result.attributes.texcoords[idx.texcoord_index * 2 + 1]
 				});
+
+
 		}
 	}
 

@@ -67,12 +67,14 @@ OBJECTS :=
 
 GENERATED += $(OBJDIR)/cone.o
 GENERATED += $(OBJDIR)/cylinder.o
+GENERATED += $(OBJDIR)/loadcustom.o
 GENERATED += $(OBJDIR)/loadobj.o
 GENERATED += $(OBJDIR)/main.o
 GENERATED += $(OBJDIR)/simple_mesh.o
 GENERATED += $(OBJDIR)/texture.o
 OBJECTS += $(OBJDIR)/cone.o
 OBJECTS += $(OBJDIR)/cylinder.o
+OBJECTS += $(OBJDIR)/loadcustom.o
 OBJECTS += $(OBJDIR)/loadobj.o
 OBJECTS += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/simple_mesh.o
@@ -144,6 +146,9 @@ $(OBJDIR)/cone.o: cone.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/cylinder.o: cylinder.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/loadcustom.o: loadcustom.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/loadobj.o: loadobj.cpp
