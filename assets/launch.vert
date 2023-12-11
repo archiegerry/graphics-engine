@@ -11,6 +11,7 @@ layout (location = 1) uniform mat3 uNormalMatrix;
 out vec3 v2fColor;
 out vec3 v2fNormal;
 out vec2 v2fTextureCoords;
+out vec4 fragPos
 
 void main()
 {
@@ -18,5 +19,6 @@ void main()
 	gl_Position = uProjCameraWorld * vec4 (iPosition, 1.0);
 	v2fNormal = normalize(uNormalMatrix * iNormal);
 	v2fTextureCoords = iTextureCoords;
+	vec4 fragPos = gl_Position;
 
 }

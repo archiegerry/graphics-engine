@@ -90,6 +90,50 @@ namespace
 	{
 		glUseProgram(programID);
 
+
+		std::vector<Vec3f> lightPositions = {
+		Vec3f{1.0f, 2.0f, 3.0f},
+		Vec3f{-2.0f, 0.0f, 1.0f}, 
+		Vec3f{0.0f, 1.0f, -3.0f} 
+		};
+
+		std::vector<Vec3f> lightDiffuse = {
+		Vec3f{1.0f, 2.0f, 3.0f},
+		Vec3f{-2.0f, 0.0f, 1.0f},
+		Vec3f{0.0f, 1.0f, -3.0f}
+		};
+
+		Vec3f sceneAmbient = { 0.1f, 0.1f, 0.1f };
+
+		//baseColor[] = {1.0f, 1.0f, 1.0f};
+
+
+
+
+		//locations for the shader program
+		GLuint lightLocation = glGetUniformLocation(programID, "ulightPos");
+		GLuint lightDiffuseLocation = glGetUniformLocation(programID, "ulightDiffuse");
+		GLuint sceneAmbientLocation = glGetUniformLocation(programID, "uSceneAmbient");
+		GLuint baseColorLocation = glGetUniformLocation(programID, "uBaseColor");
+
+		glUniform3fv(
+			lightLocation, 
+			static_cast<GLsizei>(lightPositions.size()),
+			&lightPositions[0].x);
+		glUniform3fv(
+			lightDiffuseLocation,
+			static_cast<GLsizei>(lightDiffuse.size()),
+			&lightDiffuse[0].x);
+		glUniform3fv(
+			sceneAmbientLocation,
+			1, 
+			&sceneAmbient.x);
+
+		glUniform3f(
+			baseColorLocation, 0.1f, 0.1f, 0.1f);
+
+
+
 		// for camera
 		glUniformMatrix4fv(
 			0,
@@ -102,11 +146,11 @@ namespace
 			1, GL_TRUE,
 			normalMatrix.v);
 
-		Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
+		//Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
 
-		glUniform3fv(2, 1, &lightDir.x);      // Ambient 
-		glUniform3f(3, 0.9f, 0.9f, 0.9f);	  // Diffusion
-		glUniform3f(4, 0.05f, 0.05f, 0.05f);  // Spectral
+		//glUniform3fv(2, 1, &lightDir.x);      // Ambient 
+		//glUniform3f(3, 0.9f, 0.9f, 0.9f);	  // Diffusion
+		//glUniform3f(4, 0.05f, 0.05f, 0.05f);  // Spectral
 
 		glBindVertexArray(vao);
 		if (textureObjectId != 0)
@@ -380,6 +424,8 @@ int main() try
 		);
 
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
+
+		Mat44f invProjCameraWolrd = invert(projCameraWorld);
 
 		//ENDOF TODO
 

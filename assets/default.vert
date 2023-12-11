@@ -12,6 +12,7 @@ out vec3 v2fColor;
 out vec3 v2fNormal;
 out vec2 v2fTextureCoords;
 
+
 void main()
 {
 	v2fColor = iColor;
