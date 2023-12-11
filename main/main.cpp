@@ -27,7 +27,7 @@
 #include "cube.hpp"
 #include "texture.hpp"
 
-
+#include "fontstash.h"
 
 namespace
 {
@@ -76,6 +76,7 @@ namespace
 
 namespace
 {
+	// Mesh rendering
 	void mesh_renderer(
 		GLuint vao,
 		size_t vertexCount,
@@ -120,7 +121,9 @@ namespace
 
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	}
+
 }
+
 
 int main() try
 {
@@ -255,16 +258,32 @@ int main() try
 
 	//state.prog = &prog2;  //set shader program to state
 
+
+	 // Load the launchpad
 	 auto launch = load_wavefront_obj("assets/landingpad.obj");
 	 std::size_t launchVertexCount = launch.positions.size();
+	 std::vector<Vec3f> positions = launch.positions;
 
-	 // Move the launch object
-	// for (size_t i = 0; i < launchVertexCount; i++)
-	 //{
-	//	 launch.positions[i] = launch.positions[i] + Vec3f{ 10.f, 0.f, 10.f };
-	// }
+	 // Move the 1st launch object
+	 for (size_t i = 0; i < launchVertexCount; i++)
 
-	 GLuint launch_vao = create_vao(launch);
+	 {
+		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, 0.f };
+	 }
+	 // Create a VAO for the first launchpad
+	 GLuint launch_vao_1 = create_vao(launch);
+
+	 // Return positions back to normal
+	 launch.positions = positions;
+
+	 // Move the 1st launch object
+	 for (size_t i = 0; i < launchVertexCount; i++)
+
+	 {
+		 launch.positions[i] = launch.positions[i] + Vec3f{ 2.f, -0.975f, 2.f };
+	 }
+	 // Create a VAO for the first launchpad
+	 GLuint launch_vao_2 = create_vao(launch);
 
 	//-------------------------------------------------------------------
 
@@ -357,13 +376,14 @@ int main() try
 		//Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
 
 		Mat44f projection = make_perspective_projection(
-			60 * kPi_ / 180.f, //FOV:60 converted to radians
+			60 * kPi_ / 180.f,			//FOV:60 converted to radians
 			fbwidth / float(fbheight), //aspect ratio
-			0.1f, //near plane
-			100.f //far plane
+			0.1f,					  //near plane
+			100.f					 //far plane
 		);
 
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
+
 		//ENDOF TODO
 
 		// Draw scene
@@ -376,10 +396,10 @@ int main() try
 		mesh_renderer(vao, vertexCount, Vec3f{ 10.f, 10.f, 10.f }, state, textures, prog.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the first launchpad
-		mesh_renderer(launch_vao, launchVertexCount, Vec3f{ 20.f, 20.f, 20.f }, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_1, launchVertexCount, Vec3f{ 20.f, 20.f, 20.f }, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the second launchpad
-		//mesh_renderer(launch_vao, launchVertexCount, Vec3f{ 100.f, 0.f, 100.f }, state, 0, prog2.programId(), angle, fbwidth, fbheight, projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_2, launchVertexCount, Vec3f{ 20.f, 20.f, 20.f }, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
