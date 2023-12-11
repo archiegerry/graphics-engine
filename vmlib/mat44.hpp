@@ -202,6 +202,13 @@ Mat44f transpose(Mat44f const& aM) noexcept
 	return ret;
 }
 
+inline
+float angleToRadians(float const& angle) noexcept
+{
+	float ret;
+	ret = angle * (3.1415926535897932384626433832795f / 180.f);
+	return ret;
+}
 
 
 #endif // MAT44_HPP_E7187A26_469E_48AD_A3D2_63150F05A4CA

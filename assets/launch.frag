@@ -18,7 +18,7 @@ void main()
 	// vec3 normal = normalize(v2fNormal);
 	vec3 normal = normalize(v2fNormal);
 
-	float nDotL = max(0.0 , dot(normal, uLightDir));
+	float nDotL = max(0.0 , dot(normalize(normal), normalize(uLightDir)));
 
 	//oColor = uBaseColor * v2fColor;
 	//oColor = texture(uTexture, v2fTextureCoords).rgb;

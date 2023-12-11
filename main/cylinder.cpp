@@ -19,41 +19,42 @@ SimpleMeshData make_cylinder( bool aCapped, std::size_t aSubdivs, Vec3f aColor, 
 			float y = std::cos(angle);
 			float z = std::sin(angle);
 			
-			// Normals for side faces
-			Vec3f normalSidePrev = normalize(Vec3f{ 1.f, prevY, prevZ } - Vec3f{ 0.f, prevY, prevZ }); 
-			Vec3f normalSideCurr = normalize(Vec3f{ 1.f, y, z } - Vec3f{ 0.f, y, z }); 
+			// Cylinder is aligned along the x-axis
+			Vec3f normalSide = normalize(Vec3f{ 0.f, y, z });
 
 			//first triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, prevY, prevZ });
-			normals.emplace_back(normalSidePrev);
+			normals.emplace_back(normalSide);
 			pos.emplace_back(Vec3f{ 0.f, y , z });
-			normals.emplace_back(normalSideCurr);
+			normals.emplace_back(normalSide);
 			pos.emplace_back(Vec3f{ 1.f, prevY, prevZ });
-			normals.emplace_back(normalSidePrev);
+			normals.emplace_back(normalSide);
 
 			//second triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, y, z });
-			normals.emplace_back(normalSideCurr); 
+			normals.emplace_back(normalSide); 
 			pos.emplace_back(Vec3f{ 1.f, y , z });
-			normals.emplace_back(normalSideCurr); 
+			normals.emplace_back(normalSide); 
 			pos.emplace_back(Vec3f{ 1.f, prevY, prevZ });
-			normals.emplace_back(normalSidePrev); 
+			normals.emplace_back(normalSide); 
 
 			// Front cap (counter-clockwise order)
 			pos.emplace_back(Vec3f{ -0.f, 0.f, 0.f }); 
-			normals.emplace_back(Vec3f{ 0.f, 0.f, -1.f }); 
-			pos.emplace_back(Vec3f{ -0.f, y, z }); 
-			normals.emplace_back(Vec3f{ 0.f, 0.f, -1.f }); 
-			pos.emplace_back(Vec3f{ -0.f, prevY, prevZ }); 
-			normals.emplace_back(Vec3f{ 0.f, 0.f, -1.f }); 
+			normals.emplace_back(normalSide);
+			pos.emplace_back(Vec3f{ -0.f, y, z });
+			normals.emplace_back(normalSide);
+			pos.emplace_back(Vec3f{ -0.f, prevY, prevZ });
+			normals.emplace_back(normalSide);
+
 
 			// Back cap (clockwise order)
-			pos.emplace_back(Vec3f{ 1.f, 0.f ,0.f }); 
-			normals.emplace_back(Vec3f{ 0.f, 0.f, 1.f }); 
-			pos.emplace_back(Vec3f{ 1.f, prevY, prevZ }); 
-			normals.emplace_back(Vec3f{ 0.f, 0.f, 1.f });
-			pos.emplace_back(Vec3f{ 1.f, y, z }); 
-			normals.emplace_back(Vec3f{ 0.f, 0.f, 1.f }); 
+			pos.emplace_back(Vec3f{ 1.f, 0.f ,0.f });
+			normals.emplace_back(normalSide);
+			pos.emplace_back(Vec3f{ 1.f, prevY, prevZ });
+			normals.emplace_back(normalSide); 
+			pos.emplace_back(Vec3f{ 1.f, y, z });
+			normals.emplace_back(normalSide); 
+
 
 			prevY = y;
 			prevZ = z;
@@ -70,24 +71,23 @@ SimpleMeshData make_cylinder( bool aCapped, std::size_t aSubdivs, Vec3f aColor, 
 			float z = std::sin(angle);
 
 			// Normals for side faces
-			Vec3f normalSidePrev = normalize(Vec3f{ 1.f, prevY, prevZ } - Vec3f{ 0.f, prevY, prevZ });
-			Vec3f normalSideCurr = normalize(Vec3f{ 1.f, y, z } - Vec3f{ 0.f, y, z });
+			Vec3f normalSide = normalize(Vec3f{ 0.f, y, z });
 
 			//first triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, prevY, prevZ });
-			normals.emplace_back(normalSidePrev);
+			normals.emplace_back(normalSide);
 			pos.emplace_back(Vec3f{ 0.f, y , z });
-			normals.emplace_back(normalSideCurr);
+			normals.emplace_back(normalSide);
 			pos.emplace_back(Vec3f{ 1.f, prevY, prevZ });
-			normals.emplace_back(normalSidePrev); 
+			normals.emplace_back(normalSide);
 
 			//second triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, y, z });
-			normals.emplace_back(normalSideCurr);
+			normals.emplace_back(normalSide);
 			pos.emplace_back(Vec3f{ 1.f, y , z });
-			normals.emplace_back(normalSideCurr);
+			normals.emplace_back(normalSide);
 			pos.emplace_back(Vec3f{ 1.f, prevY, prevZ });
-			normals.emplace_back(normalSidePrev);
+			normals.emplace_back(normalSide);
 
 			prevY = y;
 			prevZ = z;
@@ -101,11 +101,10 @@ SimpleMeshData make_cylinder( bool aCapped, std::size_t aSubdivs, Vec3f aColor, 
 		pos[i] = Vec3f{ t.x, t.y, t.z };
 
 		// Transform normals (ignore translation)
-		Vec4f n4{ normals[i].x, normals[i].y, normals[i].z, 0.f };
+		Vec4f n4{ normals[i].x, normals[i].y, normals[i].z, 1.f };
 		Vec4f tn = aPreTransform * n4;
 		normals[i] = normalize(Vec3f{ tn.x, tn.y, tn.z });
 	}
-
 
 	SimpleMeshData cylinder;
 	cylinder.positions = pos;

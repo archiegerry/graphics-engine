@@ -278,17 +278,25 @@ int main() try
 	 }
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_2 = create_vao(launch);
-
 	//-------------------------------------------------------------------
 
-	 Mat44f transform = Mat44f{ 1.f, 0.f, 0.f, 0.f,
-								0.f, 1.f, 0.f, 0.f,
-								0.f, 0.f, 1.f, 0.f,
-								0.f, 0.f, 0.f, 1.f };
+	 Mat44f identity = Mat44f{ 1.f, 0.f, 0.f, 3.f, 
+								0.f, 1.f, 0.f, 3.f, 
+								0.f, 0.f, 1.f, 3.f, 
+								0.f, 0.f, 0.f, 1.f } ;
 
-	SimpleMeshData cylinder = make_cylinder(true, size_t(16), Vec3f{ 0.f, 1.f, 1.f }, transform);
-	size_t count = cylinder.positions.size();
-	GLuint vaoOne = create_vao(cylinder);
+	 Mat44f translate = Mat44f{ 1.f, 0.f, 0.f, 2.f,
+								0.f, 1.f, 0.f, 2.f,
+								0.f, 0.f, 1.f, 2.f,
+								0.f, 0.f, 0.f, 1.f } * make_rotation_z(angleToRadians(90.f));
+
+	SimpleMeshData cylinder = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, identity);
+	size_t cylinderCount = cylinder.positions.size();
+	GLuint vaoCylinder = create_vao(cylinder);
+
+	SimpleMeshData cone = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, translate); 
+	size_t coneCount = cone.positions.size(); 
+	GLuint vaoCone = create_vao(cone); 
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -404,7 +412,10 @@ int main() try
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		mesh_renderer(vaoOne, count, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(vaoCylinder, cylinderCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix); 
+
+		mesh_renderer(vaoCone, coneCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
