@@ -243,10 +243,7 @@ int main() try
 	auto parlahti = load_wavefront_obj("assets/parlahti.obj");
 	GLuint vao = create_vao(parlahti);
 	std::size_t vertexCount = parlahti.positions.size();
-	//printf("vertexcount: %d\n", vertexCount);
-	//auto parlahti = load_simple_binary_mesh("assets\\parlahti.comp3811bin");
-	//GLuint vao = create_vao(parlahti);
-	//std::size_t vertexCount = parlahti.positions.size();
+
 	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
 
 	//----------------------------------------------------------------
@@ -258,7 +255,6 @@ int main() try
 
 	//state.prog = &prog2;  //set shader program to state
 
-
 	 // Load the launchpad
 	 auto launch = load_wavefront_obj("assets/landingpad.obj");
 	 std::size_t launchVertexCount = launch.positions.size();
@@ -266,10 +262,10 @@ int main() try
 
 	 // Move the 1st launch object
 	 for (size_t i = 0; i < launchVertexCount; i++)
-
 	 {
-		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, 0.f };
+		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, -50.f };
 	 }
+
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_1 = create_vao(launch);
 
@@ -278,14 +274,16 @@ int main() try
 
 	 // Move the 1st launch object
 	 for (size_t i = 0; i < launchVertexCount; i++)
-
 	 {
-		 launch.positions[i] = launch.positions[i] + Vec3f{ 2.f, -0.975f, 2.f };
+		 launch.positions[i] = launch.positions[i] + Vec3f{ -20.f, -0.975f, -15.f };
 	 }
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_2 = create_vao(launch);
 
 	//-------------------------------------------------------------------
+
+	 // Draw all arrays
+
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
