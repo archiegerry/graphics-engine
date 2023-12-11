@@ -80,7 +80,6 @@ namespace
 	void mesh_renderer(
 		GLuint vao,
 		size_t vertexCount,
-		Vec3f position,
 		State_ const& state,
 		GLuint textureObjectId,
 		GLuint programID,
@@ -391,13 +390,13 @@ int main() try
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount, Vec3f{ 10.f, 10.f, 10.f }, state, textures, prog.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the first launchpad
-		mesh_renderer(launch_vao_1, launchVertexCount, Vec3f{ 20.f, 20.f, 20.f }, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the second launchpad
-		mesh_renderer(launch_vao_2, launchVertexCount, Vec3f{ 20.f, 20.f, 20.f }, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
