@@ -262,7 +262,7 @@ int main() try
 	 // Move the 1st launch object
 	 for (size_t i = 0; i < launchVertexCount; i++)
 	 {
-		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, -50.f };
+		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, -50.f }; 
 	 }
 
 	 // Create a VAO for the first launchpad
@@ -274,15 +274,21 @@ int main() try
 	 // Move the 1st launch object
 	 for (size_t i = 0; i < launchVertexCount; i++)
 	 {
-		 launch.positions[i] = launch.positions[i] + Vec3f{ -20.f, -0.975f, -15.f };
+		 launch.positions[i] = launch.positions[i] + Vec3f{ -20.f, -0.975f, -15.f }; 
 	 }
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_2 = create_vao(launch);
 
 	//-------------------------------------------------------------------
 
-	 // Draw all arrays
+	 Mat44f transform = Mat44f{ 1.f, 0.f, 0.f, 0.f,
+								0.f, 1.f, 0.f, 0.f,
+								0.f, 0.f, 1.f, 0.f,
+								0.f, 0.f, 0.f, 1.f };
 
+	SimpleMeshData cylinder = make_cylinder(true, size_t(16), Vec3f{ 0.f, 1.f, 1.f }, transform);
+	size_t count = cylinder.positions.size();
+	GLuint vaoOne = create_vao(cylinder);
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -397,6 +403,8 @@ int main() try
 
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+
+		mesh_renderer(vaoOne, count, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
