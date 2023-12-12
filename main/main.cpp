@@ -116,12 +116,11 @@ namespace
 			Vec3f specular;
 		};
 
-		DirectLight directLight = {
-			Vec3f{ -0.2f, -1.0f, -0.3f },
-			Vec3f{0.3f, 0.24f, 0.14f },
-			Vec3f{ 0.7f, 0.42f, 0.26f },
-			Vec3f{ 0.5f, 0.5f, 0.5f }
-		};
+		DirectLight directLight = {} ;
+		directLight.direction =		Vec3f{ -1.f,-05.f,0.8f };
+		directLight.ambient =		Vec3f{ 0.9f, 0.25f, 0.3f };
+		directLight.diffuse =		Vec3f{ 0.7f, 0.42f, 0.26f };
+		directLight.specular =		Vec3f{ 0.5f, 0.5f, 0.5f };
 
 		struct PointLight
 		{
@@ -135,73 +134,72 @@ namespace
 		};
 		#define NUM_POINT_LIGHTS 3
 
-		PointLight pointLight[NUM_POINT_LIGHTS] = {
-			{
-				Vec3f{ 1.0f, 2.0f, 3.0f },
-				Vec3f{ 0.9f, 0.9f, 0.9f },
-				Vec3f{ 0.5f, 0.5f, 0.5f },
-				Vec3f{ 0.5f, 0.5f, 0.5f },
-				1.0f,
-				0.1f,
-				0.5f
-			},
-			{
-				Vec3f{ -2.0f, 0.0f, 1.0f },
-				Vec3f{ 0.1f, 0.1f, 0.1f },
-				Vec3f{ 0.5f, 0.5f, 0.5f },
-				Vec3f{ 0.5f, 0.5f, 0.5f },
-				1.0f,
-				0.09f,
-				0.032f
-			},
-			{
-				Vec3f{ 0.0f, 1.0f, -3.0f },
-				Vec3f{ 0.1f, 0.1f, 0.1f },
-				Vec3f{ 0.5f, 0.5f, 0.5f },
-				Vec3f{ 0.5f, 0.5f, 0.5f },
-				1.0f,
-				0.09f,
-				0.032f
-			}
-		};
+		PointLight pointLight[NUM_POINT_LIGHTS] {} ;
+		
+		pointLight[0].position =	Vec3f{ 1.0f, 2.0f, 3.0f };
+		pointLight[0].ambient =		Vec3f{ 0.9f, 0.9f, 0.9f };
+		pointLight[0].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[0].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[0].constant =	1.0f;
+		pointLight[0].linear =		0.1f;
+		pointLight[0].quadratic =	0.5f;
+
+		pointLight[1].position =	Vec3f{ -2.0f, 0.0f, 1.0f };
+		pointLight[1].ambient =		Vec3f{ 0.1f, 0.1f, 0.1f };
+		pointLight[1].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[1].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[1].constant =	1.0f;
+		pointLight[1].linear =		0.09f;
+		pointLight[1].quadratic =	0.032f;
+
+		pointLight[2].position =	Vec3f{ 0.0f, 1.0f, -3.0f };
+		pointLight[2].ambient =		Vec3f{ 0.1f, 0.1f, 0.1f };
+		pointLight[2].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[2].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[2].constant =	1.0f;
+		pointLight[2].linear =		0.09f;
+		pointLight[2].quadratic =	0.032f;
 
 
-		GLuint directLightLocation = glGetUniformLocation(programID, "DirectLight.direction");
+		GLuint directLightLocation = glGetUniformLocation(programID, "uDirectLight.direction");
 		glUniform3fv(directLightLocation, 1, &directLight.direction.x);
-		directLightLocation = glGetUniformLocation(programID, "DirectLight.ambient");
+
+		directLightLocation = glGetUniformLocation(programID, "uDirectLight.ambient");
 		glUniform3fv(directLightLocation, 1, &directLight.ambient.x);
-		directLightLocation = glGetUniformLocation(programID, "DirectLight.diffuse");
+
+		directLightLocation = glGetUniformLocation(programID, "uDirectLight.diffuse");
 		glUniform3fv(directLightLocation, 1, &directLight.diffuse.x);
-		directLightLocation = glGetUniformLocation(programID, "DirectLight.specular");
+
+		directLightLocation = glGetUniformLocation(programID, "uDirectLight.specular");
 		glUniform3fv(directLightLocation, 1, &directLight.specular.x);
 
 
 		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].position").c_str());
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].position").c_str());
 			glUniform3fv(pointLightLocation, 1, &pointLight[i].position.x);
 		}
 		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].ambient").c_str());
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].ambient").c_str());
 			glUniform3fv(pointLightLocation, 1, &pointLight[i].ambient.x);
 		}
 		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].diffuse").c_str());
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].diffuse").c_str());
 			glUniform3fv(pointLightLocation, 1, &pointLight[i].diffuse.x);
 		}
 		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].specular").c_str());
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].specular").c_str());
 			glUniform3fv(pointLightLocation, 1, &pointLight[i].specular.x);
 		}
 		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].constant").c_str());
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].constant").c_str());
 			glUniform1f(pointLightLocation, pointLight[i].constant);
 		}
 		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].linear").c_str());
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].linear").c_str());
 			glUniform1f(pointLightLocation, pointLight[i].linear);
 		}
 		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].quadratic").c_str());
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].quadratic").c_str());
 			glUniform1f(pointLightLocation, pointLight[i].quadratic);
 		}
 
@@ -232,7 +230,7 @@ namespace
 
 		//Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
 
-		//glUniform3fv(2, 1, &lightDir.x);      // Ambient 
+		//glUniform3fv(2, 1, &lightDir.x);      // Ambient
 		//glUniform3f(3, 0.9f, 0.9f, 0.9f);	  // Diffusion
 		//glUniform3f(4, 0.05f, 0.05f, 0.05f);  // Spectral
 
