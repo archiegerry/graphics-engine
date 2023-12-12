@@ -387,7 +387,7 @@ int main() try
 		auto const now = Clock::now();
 		float dt = std::chrono::duration_cast<Secondsf>(now - last).count(); //difference in time since last frame
 		last = now;
-
+		 
 		angle += dt * kPi_ * 0.3f;
 		if (angle >= 2.f * kPi_)
 			angle -= 2.f * kPi_;
@@ -396,7 +396,7 @@ int main() try
 
 		// Animation acceleration 
 		Mat44f spaceship2World = model2World; 
-		if (state.moveUp == true) {
+		if (state.moveUp == true) { 
 			// Acceleration parameters
 			state.spaceshipOrigin += (state.acceleration * dt); 
 
@@ -407,7 +407,7 @@ int main() try
 			if (state.spaceshipOrigin > 1.5f) {
 				state.spaceshipCurve += (0.05 * dt);
 				state.spaceshipCurve *= 1.005;
-		}
+			}
 
 			// Align spaceship with travel direction
 			float angleX = std::atan2(state.spaceshipCurve, state.spaceshipOrigin); 
