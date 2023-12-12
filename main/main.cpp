@@ -163,7 +163,7 @@ namespace
 
 		// Ickle lickle space ship (so cute!)
 		for (int vertices = 0; vertices < spaceship.positions.size(); vertices++) {
-			spaceship.positions[vertices] *= 0.25;
+			spaceship.positions[vertices] *= 0.18;
 		}
 
 		return spaceship;
@@ -330,12 +330,13 @@ int main() try
 	 // Create the spaceship
 	 auto ship = spaceship();
 	 size_t shipVertexCount = ship.positions.size();
+	 // Store original coordinates 
 	 std::vector<Vec3f> shipPositions = ship.positions;
 
 	 // Move the 1st ship
 	 for (size_t i = 0; i < shipVertexCount; i++)
 	 {
-		 ship.positions[i] = ship.positions[i] + Vec3f{ 0.f, -0.975f, -50.f };
+		 ship.positions[i] = ship.positions[i] + Vec3f{ 0.f, -1.125f, -50.f };
 	 }
 
 	 // Create VAO for first ship
@@ -346,7 +347,7 @@ int main() try
 	 // Move the 2nd ship
 	 for (size_t i = 0; i < shipVertexCount; i++)
 	 {
-		 ship.positions[i] = ship.positions[i] + Vec3f{ -20.f, -0.975f, -15.f };
+		 ship.positions[i] = ship.positions[i] + Vec3f{ -20.f, -1.125f, -15.f };
 	 }
 
 	 // Create VAO for second ship
