@@ -5,6 +5,8 @@
 #include <cassert>
 #include <cstdlib>
 
+#include "vec3.hpp"
+
 struct Vec4f
 {
 	float x, y, z, w;
@@ -143,6 +145,12 @@ float length( Vec4f aVec ) noexcept
 	// calls std::sqrt() unconditionally, so length() cannot be marked
 	// constexpr itself.
 	return std::sqrt( dot( aVec, aVec ) );
+}
+
+inline
+Vec3f V4toV3(Vec4f aVec) noexcept
+{
+	return Vec3f{ aVec.x, aVec.y, aVec.z };
 }
 
 

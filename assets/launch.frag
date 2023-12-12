@@ -31,9 +31,9 @@ vec3 getDirLight(DirectLight light, vec3 normal, vec3 viewDir)
 	float diff = max(dot(normal, lightDir), 0.0);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
 
-	vec3 ambient = light.ambient * v2fColor * uBaseColor;
-	vec3 diffuse = light.diffuse * diff * v2fColor * uBaseColor;
-	vec3 specular = light.specular * spec * v2fColor * uBaseColor;
+	vec3 ambient = light.ambient * v2fColor;
+	vec3 diffuse = light.diffuse * diff * v2fColor ;
+	vec3 specular = light.specular * spec * v2fColor;
 
 	return (ambient + diffuse + specular);
 }

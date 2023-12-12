@@ -16,7 +16,7 @@ layout (binding=0) uniform sampler2D uTexture;
 struct DirectLight
 {
 	vec3 direction;
-
+	 
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
@@ -53,6 +53,7 @@ struct PointLight
 #define NUM_POINT_LIGHTS 3
 	uniform PointLight uPointLights[NUM_POINT_LIGHTS];
 
+
 vec3 getPointLight(PointLight light, vec3 normal, vec2 fragPos, vec3 viewDir)
 {
 	vec3 lightDir = normalize(light.position - fragmentPosition.xyz);
@@ -66,15 +67,13 @@ vec3 getPointLight(PointLight light, vec3 normal, vec2 fragPos, vec3 viewDir)
 	float distance = length(light.position - fragmentPosition.xyz);
 	float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
-	vec3 ambient = light.ambient * uBaseColor; //material information should go here
-	vec3 diffuse = light.diffuse * diff * uBaseColor;
-	vec3 specular = light.specular * spec * uBaseColor;
-
+	vec3 ambient = light.ambient * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));; //material information should go here
+	vec3 diffuse = light.diffuse * diff * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));;
+	vec3 specular = light.specular * spec * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));;
 	
 	ambient *= attenuation;
 	diffuse *= attenuation;
 	specular *= attenuation;
-	
 
 	return (ambient + diffuse + specular);
 }
