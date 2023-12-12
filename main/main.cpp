@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 
 #include "../support/error.hpp"
 #include "../support/program.hpp"
@@ -61,8 +62,9 @@ namespace
 		bool moveUp = false;
 		float spaceshipOrigin = 0.f;
 		float spaceshipCurve = 0.f;
+		// Slow lift-off
 		float acceleration = 0.1f;
-		float curve = 0.01f;
+		float curve = 0.f;
 	};
 
 	void glfw_callback_error_( int, char const* );
@@ -346,28 +348,16 @@ int main() try
 	 // Create the spaceship
 	 auto ship = spaceship();
 	 size_t shipVertexCount = ship.positions.size();
-	 // Store original coordinates 
-	 std::vector<Vec3f> shipPositions = ship.positions;
 
-	 // Move the 1st ship
+
+	 // Move the ship
 	 for (size_t i = 0; i < shipVertexCount; i++)
 	 {
-		 ship.positions[i] = ship.positions[i] + Vec3f{ 0.f, -1.125f, -50.f };
+		 ship.positions[i] = ship.positions[i] + Vec3f{ -20.f, -1.125f, -15.f };
 	 }
 
-	 // Create VAO for first ship
+	 // Create VAO for the ship
 	 GLuint ship_one_vao = create_vao(ship);
-	 // Return positions back to normal
-	 ship.positions = shipPositions;
-
-	//  // Move the 2nd ship
-	//  for (size_t i = 0; i < shipVertexCount; i++)
-	//  {
-	// 	 ship.positions[i] = ship.positions[i] + Vec3f{ -20.f, -1.125f, -15.f };
-	//  }
-
-	//  // Create VAO for second ship
-	//  GLuint ship_two_vao = create_vao(ship);
 
 	 Mat44f spaceshipModel2World;
 
@@ -407,7 +397,7 @@ int main() try
 		auto const now = Clock::now();
 		float dt = std::chrono::duration_cast<Secondsf>(now - last).count(); //difference in time since last frame
 		last = now;
-
+		 
 		angle += dt * kPi_ * 0.3f;
 		if (angle >= 2.f * kPi_)
 			angle -= 2.f * kPi_;
@@ -415,17 +405,30 @@ int main() try
 		Mat44f model2World = make_rotation_y(0);
 
 		// Animation acceleration 
-		Mat44f spaceship2World;
-		if (state.moveUp == true) {
-			state.spaceshipOrigin = state.spaceshipOrigin + (state.acceleration * dt);
-			state.spaceshipCurve = state.spaceshipCurve + (state.curve * dt);
-			state.acceleration = state.acceleration * 1.0015;
-			// We want a noticeable curve, so make it higher than the standard acceleration
-			state.spaceshipCurve = state.spaceshipCurve * 1.0025;
-			spaceship2World = model2World * make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve }) ;
-		}
-		else {
-			spaceship2World = model2World;
+		Mat44f spaceship2World = model2World; 
+		if (state.moveUp == true) { 
+			// Acceleration parameters
+			state.spaceshipOrigin += (state.acceleration * dt); 
+
+			// How quickly up
+			state.acceleration *= 1.0025;
+
+			// Curve once certain height is reached
+			if (state.spaceshipOrigin > 1.5f) {
+				state.spaceshipCurve += (0.05 * dt);
+				state.spaceshipCurve *= 1.005;
+			}
+
+			// Align spaceship with travel direction
+			float angleX = std::atan2(state.spaceshipCurve, state.spaceshipOrigin); 
+
+			// Must translate the shape back to starting point to apply transformations
+			Mat44f translationToOrigin = make_translation(Vec3f{ 20.f, 1.125f, 15.f }); 
+			Mat44f xRotationMatrix = make_rotation_x(angleX); 
+			// Then must be translated back to launchpad
+			Mat44f originToTranslation = make_translation(Vec3f{ -20.f, -1.125f, -15.f }); 
+			Mat44f translationMatrix = make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });  
+			spaceship2World = translationMatrix * originToTranslation * xRotationMatrix * translationToOrigin * model2World;
 		}
 
 
@@ -504,11 +507,9 @@ int main() try
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		// Draw first ship
+		// Draw ship
 		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
 
-		// Draw second ship
-		//mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
