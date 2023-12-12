@@ -85,7 +85,6 @@ namespace
 		GLuint programID,
 		Mat44f projCameraWorld,
 		Mat33f normalMatrix
-		//Mat44f localTransform
 	)
 	{
 		glUseProgram(programID);
@@ -121,6 +120,27 @@ namespace
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	}
 
+}
+
+namespace
+{ 
+	SimpleMeshData spaceship() {
+
+		SimpleMeshData coneLeft = make_cone(false, size_t(64), Vec3f{ 0.8f, 0.8f, 0.8f }, make_translation({0.f, 1.5f, 0.f}));
+		SimpleMeshData coneRight = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_z(angleToRadians(180)));
+		SimpleMeshData body = concatenate(coneLeft, coneRight);
+		SimpleMeshData footOne = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimOne = concatenate(body, footOne);
+		SimpleMeshData footTwo = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_z(angleToRadians(-135)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimTwo = concatenate(interimOne, footTwo); 
+		SimpleMeshData footThree = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimThree = concatenate(interimTwo, footThree);
+		SimpleMeshData footFour = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData spaceship = concatenate(interimThree, footFour);
+
+		return spaceship;
+
+	}
 }
 
 
@@ -252,11 +272,9 @@ int main() try
 	 	{ GL_FRAGMENT_SHADER, "assets/launch.frag" } 
 	 	}); 
 
-	//state.prog = &prog2;  //set shader program to state
-
 	 // Load the launchpad
 	 auto launch = load_wavefront_obj("assets/landingpad.obj");
-	 std::size_t launchVertexCount = launch.positions.size();
+	 size_t launchVertexCount = launch.positions.size();
 	 std::vector<Vec3f> positions = launch.positions;
 
 	 // Move the 1st launch object
@@ -267,7 +285,6 @@ int main() try
 
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_1 = create_vao(launch);
-
 	 // Return positions back to normal
 	 launch.positions = positions;
 
@@ -280,23 +297,10 @@ int main() try
 	 GLuint launch_vao_2 = create_vao(launch);
 	//-------------------------------------------------------------------
 
-	 Mat44f identity = Mat44f{ 1.f, 0.f, 0.f, 3.f, 
-								0.f, 1.f, 0.f, 3.f, 
-								0.f, 0.f, 1.f, 3.f, 
-								0.f, 0.f, 0.f, 1.f } ;
-
-	 Mat44f translate = Mat44f{ 1.f, 0.f, 0.f, 2.f,
-								0.f, 1.f, 0.f, 2.f,
-								0.f, 0.f, 1.f, 2.f,
-								0.f, 0.f, 0.f, 1.f } * make_rotation_z(angleToRadians(90.f));
-
-	SimpleMeshData cylinder = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, identity);
-	size_t cylinderCount = cylinder.positions.size();
-	GLuint vaoCylinder = create_vao(cylinder);
-
-	SimpleMeshData cone = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, translate); 
-	size_t coneCount = cone.positions.size(); 
-	GLuint vaoCone = create_vao(cone); 
+	 // Create the spaceship
+	 auto ship = spaceship();
+	 size_t shipVertices = ship.positions.size();
+	 GLuint shipVao = create_vao(ship);
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -412,9 +416,7 @@ int main() try
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		mesh_renderer(vaoCylinder, cylinderCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix); 
-
-		mesh_renderer(vaoCone, coneCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(shipVao, shipVertices, state, 0, prog2.programId(), projCameraWorld, normalMatrix); 
 
 
 		glBindVertexArray(0);
