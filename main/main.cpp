@@ -290,9 +290,9 @@ int main() try
 								0.f, 0.f, 1.f, 2.f,
 								0.f, 0.f, 0.f, 1.f } * make_rotation_z(angleToRadians(90.f));
 
-	SimpleMeshData cylinder = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, identity);
-	size_t cylinderCount = cylinder.positions.size();
-	GLuint vaoCylinder = create_vao(cylinder);
+	SimpleMeshData cube = make_cube(Vec3f{ 1.f, 1.f, 1.f }, identity);
+	size_t cubeCount = cube.positions.size();
+	GLuint vaoCube = create_vao(cube);
 
 	SimpleMeshData cone = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, translate); 
 	size_t coneCount = cone.positions.size(); 
@@ -412,7 +412,7 @@ int main() try
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		mesh_renderer(vaoCylinder, cylinderCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix); 
+		mesh_renderer(vaoCube, cubeCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix); 
 
 		mesh_renderer(vaoCone, coneCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 

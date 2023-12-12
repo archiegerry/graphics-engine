@@ -1,98 +1,21 @@
 #ifndef CUBE_HPP_6874B39C_112D_4D34_BD85_AB81A730955B
 #define CUBE_HPP_6874B39C_112D_4D34_BD85_AB81A730955B
 
-// This defines the vertex data for a colored unit cube.
+#include <vector>
 
-constexpr float const kCubePositions[] = {
-	+1.f, +1.f, -1.f,
-	-1.f, +1.f, -1.f,
-	-1.f, +1.f, +1.f,
-	+1.f, +1.f, -1.f,
-	-1.f, +1.f, +1.f,
-	+1.f, +1.f, +1.f,
+#include <cstdlib>
 
-	+1.f, -1.f, +1.f,
-	+1.f, +1.f, +1.f,
-	-1.f, +1.f, +1.f,
-	+1.f, -1.f, +1.f,
-	-1.f, +1.f, +1.f,
-	-1.f, -1.f, +1.f,
+#include "simple_mesh.hpp"
 
-	-1.f, -1.f, +1.f,
-	-1.f, +1.f, +1.f,
-	-1.f, +1.f, -1.f,
-	-1.f, -1.f, +1.f,
-	-1.f, +1.f, -1.f,
-	-1.f, -1.f, -1.f,
+#include "../vmlib/vec3.hpp"
+#include "../vmlib/mat44.hpp"
 
-	-1.f, -1.f, -1.f,
-	+1.f, -1.f, -1.f,
-	+1.f, -1.f, +1.f,
-	-1.f, -1.f, -1.f,
-	+1.f, -1.f, +1.f,
-	-1.f, -1.f, +1.f,
-
-	+1.f, -1.f, -1.f,
-	+1.f, +1.f, -1.f,
-	+1.f, +1.f, +1.f,
-	+1.f, -1.f, -1.f,
-	+1.f, +1.f, +1.f,
-	+1.f, -1.f, +1.f,
-
-	-1.f, -1.f, -1.f,
-	-1.f, +1.f, -1.f,
-	+1.f, +1.f, -1.f,
-	-1.f, -1.f, -1.f,
-	+1.f, +1.f, -1.f,
-	+1.f, -1.f, -1.f,
-};
-
-constexpr float const kCubeColors[] = {
-	+1.f, +0.f, +0.f,
-	+1.f, +0.f, +0.f,
-	+1.f, +0.f, +0.f,
-	+1.f, +0.f, +0.f,
-	+1.f, +0.f, +0.f,
-	+1.f, +0.f, +0.f,
-
-	+0.f, +1.f, +0.f,
-	+0.f, +1.f, +0.f,
-	+0.f, +1.f, +0.f,
-	+0.f, +1.f, +0.f,
-	+0.f, +1.f, +0.f,
-	+0.f, +1.f, +0.f,
-
-	+0.f, +0.f, +1.f,
-	+0.f, +0.f, +1.f,
-	+0.f, +0.f, +1.f,
-	+0.f, +0.f, +1.f,
-	+0.f, +0.f, +1.f,
-	+0.f, +0.f, +1.f,
-
-	+1.f, +0.f, +1.f,
-	+1.f, +0.f, +1.f,
-	+1.f, +0.f, +1.f,
-	+1.f, +0.f, +1.f,
-	+1.f, +0.f, +1.f,
-	+1.f, +0.f, +1.f,
-
-	+1.f, +1.f, +0.f,
-	+1.f, +1.f, +0.f,
-	+1.f, +1.f, +0.f,
-	+1.f, +1.f, +0.f,
-	+1.f, +1.f, +0.f,
-	+1.f, +1.f, +0.f,
-
-	+0.f, +1.f, +1.f,
-	+0.f, +1.f, +1.f,
-	+0.f, +1.f, +1.f,
-	+0.f, +1.f, +1.f,
-	+0.f, +1.f, +1.f,
-	+0.f, +1.f, +1.f
-};
-
-static_assert( sizeof(kCubeColors) == sizeof(kCubePositions),
-	"Size of cube colors and cube positions do not match. Both are 3D vectors."
+SimpleMeshData make_cube(
+	//bool aCapped = true,
+	//std::size_t aSubdivs = 16,
+	Vec3f aColor = { 1.f, 1.f, 1.f },
+	Mat44f aPreTransform = kIdentity44f
 );
+
 
 #endif // CUBE_HPP_6874B39C_112D_4D34_BD85_AB81A730955B
