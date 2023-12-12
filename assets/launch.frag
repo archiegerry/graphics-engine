@@ -5,13 +5,12 @@ in vec3 v2fNormal;
 in vec2 v2fTextureCoords;
 
 layout (location=0) out vec3 oColor;
-
-layout (location=3) uniform vec3 uLightDiffuse[3];
 //layout (location=4) uniform vec3 uSceneAmbient;
-layout (location=6) uniform mat4 invProjCameraWorld;
-layout (location=5) uniform vec3 uBaseColor;
+layout (location=6) uniform mat4 uInvProjCameraWorld;
 
+layout (location=7) uniform vec3 uBaseColor;
 
+layout (binding=0) uniform sampler2D uTexture;
 
 struct DirectLight
 {
@@ -84,7 +83,7 @@ void main()
 	// vec3 normal = normalize(v2fNormal);
 	vec3 normal = normalize(v2fNormal);
 
-	vec4 viewPos4d = invProjCameraWorld * gl_FragCoord.xyzw;
+	vec4 viewPos4d = uInvProjCameraWorld * gl_FragCoord.xyzw;
 
 	vec3 viewPos = viewPos4d.xyz / viewPos4d.w;
 
@@ -99,10 +98,14 @@ void main()
 		resultantLighting += getPointLight(pointLights[i], normal, gl_FragCoord.xy, viewDir);
 	}
 
+	//oColor = texture(uTexture, v2fTextureCoords).rgb;
 	oColor = resultantLighting;
 	//fragColor = vec4(resultantLighting, 1.0f);
 	//oColor = uBaseColor * v2fColor;
-	//oColor = texture(uTexture, v2fTextureCoords).rgb;
+
+	
+	//oColor = texture(uTexture, v2fTextureCoords).rgb * resultantLighting; //* (resultantLighting); //might not work
+
 	//oColor = (uSceneAmbient + nDotL * uLightDiffuse) * v2fColor;
 	//oColor = texture(uTexture, v2fTextureCoords).rgb * (uSceneAmbient + nDotL * uLightDiffuse); //might not work
 

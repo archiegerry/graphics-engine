@@ -90,6 +90,7 @@ namespace
 	{
 		glUseProgram(programID);
 
+		/*
 
 		std::vector<Vec3f> lightPositions = {
 		Vec3f{1.0f, 2.0f, 3.0f},
@@ -103,36 +104,119 @@ namespace
 		Vec3f{0.0f, 1.0f, -3.0f}
 		};
 
-		Vec3f sceneAmbient = { 0.1f, 0.1f, 0.1f };
+		Vec3f sceneAmbient = { 0.1f, 0.1f, 0.1f }; */
 
 		//baseColor[] = {1.0f, 1.0f, 1.0f};
 
+		struct DirectLight
+		{
+			Vec3f direction;
+			Vec3f ambient;
+			Vec3f diffuse;
+			Vec3f specular;
+		};
+
+		DirectLight directLight = {
+			Vec3f{ -0.2f, -1.0f, -0.3f },
+			Vec3f{0.3f, 0.24f, 0.14f },
+			Vec3f{ 0.7f, 0.42f, 0.26f },
+			Vec3f{ 0.5f, 0.5f, 0.5f }
+		};
+
+		struct PointLight
+		{
+			Vec3f position;
+			Vec3f ambient;
+			Vec3f diffuse;
+			Vec3f specular;
+			float constant;
+			float linear;
+			float quadratic;
+		};
+		#define NUM_POINT_LIGHTS 3
+
+		PointLight pointLight[NUM_POINT_LIGHTS] = {
+			{
+				Vec3f{ 1.0f, 2.0f, 3.0f },
+				Vec3f{ 0.9f, 0.9f, 0.9f },
+				Vec3f{ 0.5f, 0.5f, 0.5f },
+				Vec3f{ 0.5f, 0.5f, 0.5f },
+				1.0f,
+				0.1f,
+				0.5f
+			},
+			{
+				Vec3f{ -2.0f, 0.0f, 1.0f },
+				Vec3f{ 0.1f, 0.1f, 0.1f },
+				Vec3f{ 0.5f, 0.5f, 0.5f },
+				Vec3f{ 0.5f, 0.5f, 0.5f },
+				1.0f,
+				0.09f,
+				0.032f
+			},
+			{
+				Vec3f{ 0.0f, 1.0f, -3.0f },
+				Vec3f{ 0.1f, 0.1f, 0.1f },
+				Vec3f{ 0.5f, 0.5f, 0.5f },
+				Vec3f{ 0.5f, 0.5f, 0.5f },
+				1.0f,
+				0.09f,
+				0.032f
+			}
+		};
 
 
+		GLuint directLightLocation = glGetUniformLocation(programID, "DirectLight.direction");
+		glUniform3fv(directLightLocation, 1, &directLight.direction.x);
+		directLightLocation = glGetUniformLocation(programID, "DirectLight.ambient");
+		glUniform3fv(directLightLocation, 1, &directLight.ambient.x);
+		directLightLocation = glGetUniformLocation(programID, "DirectLight.diffuse");
+		glUniform3fv(directLightLocation, 1, &directLight.diffuse.x);
+		directLightLocation = glGetUniformLocation(programID, "DirectLight.specular");
+		glUniform3fv(directLightLocation, 1, &directLight.specular.x);
 
-		//locations for the shader program
-		GLuint lightLocation = glGetUniformLocation(programID, "ulightPos");
-		GLuint lightDiffuseLocation = glGetUniformLocation(programID, "ulightDiffuse");
-		GLuint sceneAmbientLocation = glGetUniformLocation(programID, "uSceneAmbient");
+
+		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].position").c_str());
+			glUniform3fv(pointLightLocation, 1, &pointLight[i].position.x);
+		}
+		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].ambient").c_str());
+			glUniform3fv(pointLightLocation, 1, &pointLight[i].ambient.x);
+		}
+		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].diffuse").c_str());
+			glUniform3fv(pointLightLocation, 1, &pointLight[i].diffuse.x);
+		}
+		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].specular").c_str());
+			glUniform3fv(pointLightLocation, 1, &pointLight[i].specular.x);
+		}
+		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].constant").c_str());
+			glUniform1f(pointLightLocation, pointLight[i].constant);
+		}
+		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].linear").c_str());
+			glUniform1f(pointLightLocation, pointLight[i].linear);
+		}
+		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
+			GLuint pointLightLocation = glGetUniformLocation(programID, ("pointLights[" + std::to_string(i) + "].quadratic").c_str());
+			glUniform1f(pointLightLocation, pointLight[i].quadratic);
+		}
+
+
 		GLuint baseColorLocation = glGetUniformLocation(programID, "uBaseColor");
-
-		glUniform3fv(
-			lightLocation, 
-			static_cast<GLsizei>(lightPositions.size()),
-			&lightPositions[0].x);
-		glUniform3fv(
-			lightDiffuseLocation,
-			static_cast<GLsizei>(lightDiffuse.size()),
-			&lightDiffuse[0].x);
-		glUniform3fv(
-			sceneAmbientLocation,
-			1, 
-			&sceneAmbient.x);
-
 		glUniform3f(
-			baseColorLocation, 0.1f, 0.1f, 0.1f);
+			baseColorLocation, 0.9f, 0.9f, 0.9f);
 
+		Mat44f invProjCameraWolrd = invert(projCameraWorld);
 
+		GLuint invProjCameraWorldLocation = glGetUniformLocation(programID, "uInvProjCameraWorld");
+		glUniformMatrix4fv(
+			invProjCameraWorldLocation,
+			1, GL_TRUE,
+			invProjCameraWolrd.v);
 
 		// for camera
 		glUniformMatrix4fv(
@@ -436,7 +520,7 @@ int main() try
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(vao, vertexCount,  state, textures, prog2.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the first launchpad
 		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
