@@ -23,7 +23,7 @@ SimpleMeshData make_cone( bool aCapped, std::size_t aSubdivs, Vec3f aColor, Mat4
 			float z = std::sin(angle);
 
 			// Cone is aligned along the x-axis
-			Vec3f normalSide = normalize(Vec3f{ 0.f, y, z });
+			Vec3f normalSide = normalize(Vec3f{ 1.f, y, z });
 
 			//first triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, prevY, prevZ });
@@ -72,7 +72,7 @@ SimpleMeshData make_cone( bool aCapped, std::size_t aSubdivs, Vec3f aColor, Mat4
 			float z = std::sin(angle);
 
 			// Cone is aligned along the x-axis
-			Vec3f normalSide = normalize(Vec3f{ 0.f, y, z });
+			Vec3f normalSide = normalize(Vec3f{ 1.f, y, z });
 
 			//first triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, prevY, prevZ });

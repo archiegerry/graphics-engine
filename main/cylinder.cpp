@@ -20,7 +20,7 @@ SimpleMeshData make_cylinder( bool aCapped, std::size_t aSubdivs, Vec3f aColor, 
 			float z = std::sin(angle);
 			
 			// Cylinder is aligned along the x-axis
-			Vec3f normalSide = normalize(Vec3f{ 0.f, y, z });
+			Vec3f normalSide = normalize(Vec3f{ 1.f, y, z });
 
 			//first triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, prevY, prevZ });
@@ -71,7 +71,7 @@ SimpleMeshData make_cylinder( bool aCapped, std::size_t aSubdivs, Vec3f aColor, 
 			float z = std::sin(angle);
 
 			// Normals for side faces
-			Vec3f normalSide = normalize(Vec3f{ 0.f, y, z });
+			Vec3f normalSide = normalize(Vec3f{ 1.f, y, z });
 
 			//first triangle of rectangle
 			pos.emplace_back(Vec3f{ 0.f, prevY, prevZ });
