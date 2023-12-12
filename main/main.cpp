@@ -297,6 +297,7 @@ int main() try
 	 GLuint launch_vao_2 = create_vao(launch);
 	//-------------------------------------------------------------------
 
+
 	 // Create the spaceship
 	 auto ship = spaceship();
 	 size_t shipVertices = ship.positions.size();
@@ -417,7 +418,6 @@ int main() try
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		mesh_renderer(shipVao, shipVertices, state, 0, prog2.programId(), projCameraWorld, normalMatrix); 
-
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
