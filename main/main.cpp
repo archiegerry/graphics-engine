@@ -58,9 +58,11 @@ namespace
 		} camControl;
 
 		// Spaceship stuff
-		float spaceshipOrigin = 0.f;
 		bool moveUp = false;
+		float spaceshipOrigin = 0.f;
+		float spaceshipCurve = 0.f;
 		float acceleration = 0.1f;
+		float curve = 0.01f;
 	};
 
 	void glfw_callback_error_( int, char const* );
@@ -407,8 +409,11 @@ int main() try
 		Mat44f spaceship2World;
 		if (state.moveUp == true) {
 			state.spaceshipOrigin = state.spaceshipOrigin + (state.acceleration * dt);
-			state.acceleration = state.acceleration * 1.0025;
-			spaceship2World = model2World * make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, 0.0f }) ;
+			state.spaceshipCurve = state.spaceshipCurve + (state.curve * dt);
+			state.acceleration = state.acceleration * 1.0015;
+			// We want a noticeable curve, so make it higher than the standard acceleration
+			state.spaceshipCurve = state.spaceshipCurve * 1.0025;
+			spaceship2World = model2World * make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve }) ;
 		}
 		else {
 			spaceship2World = model2World;
@@ -472,7 +477,6 @@ int main() try
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
 
 		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
-
 
 		//ENDOF TODO
 
@@ -653,6 +657,8 @@ namespace
 			} else if (GLFW_KEY_R == aKey) {
 				state->moveUp = false;
 				state->spaceshipOrigin = 0.f;
+				state->spaceshipCurve = 0.f;
+				state->curve = 0.005f;
 				state->acceleration = 0.1f;
 			}
 		}
