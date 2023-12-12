@@ -56,6 +56,11 @@ namespace
 
 			float lastX, lastY;
 		} camControl;
+
+		// Spaceship stuff
+		float spaceshipOrigin = 0.f;
+		bool moveUp = false;
+		float acceleration = 0.1f;
 	};
 
 	void glfw_callback_error_( int, char const* );
@@ -353,6 +358,8 @@ int main() try
 	 // Create VAO for second ship
 	 GLuint ship_two_vao = create_vao(ship);
 
+	 Mat44f spaceshipModel2World;
+
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -395,6 +402,19 @@ int main() try
 			angle -= 2.f * kPi_;
 
 		Mat44f model2World = make_rotation_y(0);
+
+		// Animation acceleration 
+		Mat44f spaceship2World;
+		if (state.moveUp == true) {
+			state.spaceshipOrigin = state.spaceshipOrigin + (state.acceleration * dt);
+			state.acceleration = state.acceleration * 1.0025;
+			spaceship2World = model2World * make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, 0.0f }) ;
+		}
+		else {
+			spaceship2World = model2World;
+		}
+
+
 		Mat33f normalMatrix = mat44_to_mat33(transpose(invert(model2World)));
 
 		Mat44f Rx = make_rotation_x(state.camControl.theta);
@@ -435,6 +455,7 @@ int main() try
 			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
 		}
 
+
 		T = make_translation(state.camControl.movementVec);
 
 		Mat44f world2Camera = Rx * Ry * T;
@@ -449,6 +470,9 @@ int main() try
 		);
 
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
+
+		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
+
 
 		//ENDOF TODO
 
@@ -468,10 +492,10 @@ int main() try
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		// Draw first ship
-		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
 
 		// Draw second ship
-		mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
@@ -621,6 +645,15 @@ namespace
 					else if (GLFW_RELEASE == aAction)
 						kMovementPerSecond_ *= 2.f;
 				}
+			}
+
+			// Spaceship animation control
+			if (GLFW_KEY_F == aKey) {
+				state->moveUp = true;
+			} else if (GLFW_KEY_R == aKey) {
+				state->moveUp = false;
+				state->spaceshipOrigin = 0.f;
+				state->acceleration = 0.1f;
 			}
 		}
 	}
