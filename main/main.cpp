@@ -56,7 +56,15 @@ namespace
 
 			float lastX, lastY;
 		} camControl;
+
+		// Spaceship stuff
+		bool moveUp = false;
+		float spaceshipOrigin = 0.f;
+		float spaceshipCurve = 0.f;
+		float acceleration = 0.1f;
+		float curve = 0.01f;
 	};
+
 
 	void glfw_callback_error_( int, char const* );
 	void glfw_callback_key_( GLFWwindow*, int, int, int, int );
@@ -231,6 +239,54 @@ namespace
 
 }
 
+namespace
+{
+	SimpleMeshData spaceship() {
+
+		Vec3f color = { 0.35f, 0.35f, 0.3f };
+
+		//Body
+		SimpleMeshData coneLeft = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 2.5f, 0.f }));
+		SimpleMeshData coneRight = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(180)));
+		SimpleMeshData body = concatenate(coneLeft, coneRight);
+
+		// Legs
+		SimpleMeshData legOne = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimOne = concatenate(body, legOne);
+		SimpleMeshData legTwo = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-135)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimTwo = concatenate(interimOne, legTwo);
+		SimpleMeshData legThree = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimThree = concatenate(interimTwo, legThree);
+		SimpleMeshData legFour = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimFour = concatenate(interimThree, legFour);
+
+		// Feet
+		SimpleMeshData footOne = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ -1.3f, 1.f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimFive = concatenate(interimFour, footOne);
+		SimpleMeshData footTwo = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 1.3f, 1.f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimSix = concatenate(interimFive, footTwo);
+		SimpleMeshData footThree = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.f, -1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimSeven = concatenate(interimSix, footThree);
+		SimpleMeshData footFour = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.0f, 1.f, 1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimEight = concatenate(interimSeven, footFour);
+
+		// Middle bars and other shiz
+		SimpleMeshData connectorOne = make_cylinder(false, size_t(64), color, make_translation({ -0.f, 1.f, 1.2f }) * make_rotation_y(angleToRadians(90)) * make_scaling(2.4f, 0.1f, 0.1f));
+		SimpleMeshData interimNine = concatenate(interimEight, connectorOne);
+		SimpleMeshData connectorTwo = make_cylinder(false, size_t(64), color, make_translation({ -1.2f, 1.f, 0.f }) * make_scaling(2.4f, 0.1f, 0.1f));
+		SimpleMeshData spaceship = concatenate(interimNine, connectorTwo);
+		//		SimpleMeshData engine = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 0.55f, 0.f }) * make_rotation_z(angleToRadians(90)) * make_scaling(0.5f, 0.5f, 0.5f));
+			//	SimpleMeshData spaceship = concatenate(interimTen, engine);
+
+				// Ickle lickle space ship (so cute!)
+		for (int vertices = 0; vertices < spaceship.positions.size(); vertices++) {
+			spaceship.positions[vertices] *= 0.18;
+		}
+
+		return spaceship;
+	}
+}
+
 
 int main() try
 {
@@ -364,7 +420,7 @@ int main() try
 
 	 // Load the launchpad
 	 auto launch = load_wavefront_obj("assets/landingpad.obj");
-	 std::size_t launchVertexCount = launch.positions.size();
+	 size_t launchVertexCount = launch.positions.size();
 	 std::vector<Vec3f> positions = launch.positions;
 
 	 // Move the 1st launch object
@@ -386,6 +442,40 @@ int main() try
 	 }
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_2 = create_vao(launch);
+
+
+	 // SHIP CREATION SECTION
+   //-------------------------------------------------------------------
+
+
+	// Create the spaceship
+	 auto ship = spaceship();
+	 size_t shipVertexCount = ship.positions.size();
+	 // Store original coordinates 
+	 std::vector<Vec3f> shipPositions = ship.positions;
+
+	 // Move the 1st ship
+	 for (size_t i = 0; i < shipVertexCount; i++)
+	 {
+		 ship.positions[i] = ship.positions[i] + Vec3f{ 0.f, -1.125f, -50.f };
+	 }
+
+	 // Create VAO for first ship
+	 GLuint ship_one_vao = create_vao(ship);
+	 // Return positions back to normal
+	 ship.positions = shipPositions;
+
+	 // Move the 2nd ship
+	 for (size_t i = 0; i < shipVertexCount; i++)
+	 {
+		 ship.positions[i] = ship.positions[i] + Vec3f{ -20.f, -1.125f, -15.f };
+	 }
+
+	 // Create VAO for second ship
+	 GLuint ship_two_vao = create_vao(ship);
+
+	 Mat44f spaceshipModel2World;
+
 
 	//-------------------------------------------------------------------
 
@@ -434,6 +524,27 @@ int main() try
 			angle -= 2.f * kPi_;
 
 		Mat44f model2World = make_rotation_y(0);
+
+
+
+		// Animation acceleration 
+		Mat44f spaceship2World;
+		if (state.moveUp == true) {
+			state.spaceshipOrigin = state.spaceshipOrigin + (state.acceleration * dt);
+			state.spaceshipCurve = state.spaceshipCurve + (state.curve * dt);
+			state.acceleration = state.acceleration * 1.0015;
+			// We want a noticeable curve, so make it higher than the standard acceleration
+			state.spaceshipCurve = state.spaceshipCurve * 1.0025;
+			spaceship2World = model2World * make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });
+		}
+		else {
+			spaceship2World = model2World;
+		}
+
+
+
+
+
 		Mat33f normalMatrix = mat44_to_mat33(transpose(invert(model2World)));
 
 		Mat44f Rx = make_rotation_x(state.camControl.theta);
@@ -489,6 +600,9 @@ int main() try
 
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
 
+		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
+
+
 		Mat44f invProjCameraWolrd = invert(projCameraWorld);
 
 		//ENDOF TODO
@@ -507,6 +621,13 @@ int main() try
 
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+
+		// Draw first ship
+		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+
+		// Draw second ship
+		mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
@@ -656,6 +777,18 @@ namespace
 					else if (GLFW_RELEASE == aAction)
 						kMovementPerSecond_ *= 2.f;
 				}
+			}
+
+			// Spaceship animation control
+			if (GLFW_KEY_F == aKey) {
+				state->moveUp = true;
+			}
+			else if (GLFW_KEY_R == aKey) {
+				state->moveUp = false;
+				state->spaceshipOrigin = 0.f;
+				state->spaceshipCurve = 0.f;
+				state->curve = 0.005f;
+				state->acceleration = 0.1f;
 			}
 		}
 	}
