@@ -65,7 +65,6 @@ namespace
 		float curve = 0.01f;
 	};
 
-
 	void glfw_callback_error_( int, char const* );
 	void glfw_callback_key_( GLFWwindow*, int, int, int, int );
 
@@ -80,27 +79,6 @@ namespace
 		~GLFWWindowDeleter();
 		GLFWwindow* window;
 	};
-
-	struct DirectLight
-	{
-		Vec3f direction;
-		Vec3f ambient;
-		Vec3f diffuse;
-		Vec3f specular;
-	};
-
-	struct PointLight
-	{
-		Vec3f position;
-		Vec3f ambient;
-		Vec3f diffuse;
-		Vec3f specular;
-		float constant;
-		float linear;
-		float quadratic;
-	};
-
-#define NUM_POINT_LIGHTS 3
 }
 
 namespace
@@ -114,97 +92,9 @@ namespace
 		GLuint programID,
 		Mat44f projCameraWorld,
 		Mat33f normalMatrix
-		//Mat44f localTransform
 	)
 	{
 		glUseProgram(programID);
-
-		DirectLight directLight = {} ;
-		directLight.direction =		Vec3f{ -1.f,-05.f,0.8f };
-		directLight.ambient =		Vec3f{ 0.9f, 0.25f, 0.3f };
-		directLight.diffuse =		Vec3f{ 0.7f, 0.42f, 0.26f };
-		directLight.specular =		Vec3f{ 0.5f, 0.5f, 0.5f };
-
-		PointLight pointLight[NUM_POINT_LIGHTS] {} ;
-		pointLight[0].position =	Vec3f{ 0.0f, 1.0f, -5.0f };
-		pointLight[0].ambient =		Vec3f{ 0.9f, 0.9f, 0.9f };
-		pointLight[0].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[0].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[0].constant =	1.0f;
-		pointLight[0].linear =		0.7f;
-		pointLight[0].quadratic =	1.8f;
-
-		pointLight[1].position =	Vec3f{ -20.0f, 0.0f, 00.0f };
-		pointLight[1].ambient =		Vec3f{ 0.1f, 0.1f, 0.1f };
-		pointLight[1].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[1].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[1].constant =	1.0f;
-		pointLight[1].linear =		0.5f;
-		pointLight[1].quadratic =	10.032f;
-
-		pointLight[2].position =	Vec3f{ 0.0f, 1.0f, -3.0f };
-		pointLight[2].ambient =		Vec3f{ 0.1f, 0.1f, 0.1f };
-		pointLight[2].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[2].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[2].constant =	1.0f;
-		pointLight[2].linear =		0.5f;
-		pointLight[2].quadratic =	10.032f;
-
-
-		GLuint directLightLocation = glGetUniformLocation(programID, "uDirectLight.direction");
-		glUniform3fv(directLightLocation, 1, &directLight.direction.x);
-
-		directLightLocation = glGetUniformLocation(programID, "uDirectLight.ambient");
-		glUniform3fv(directLightLocation, 1, &directLight.ambient.x);
-
-		directLightLocation = glGetUniformLocation(programID, "uDirectLight.diffuse");
-		glUniform3fv(directLightLocation, 1, &directLight.diffuse.x);
-
-		directLightLocation = glGetUniformLocation(programID, "uDirectLight.specular");
-		glUniform3fv(directLightLocation, 1, &directLight.specular.x);
-
-
-		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].position").c_str());
-			glUniform3fv(pointLightLocation, 1, &pointLight[i].position.x);
-		}
-		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].ambient").c_str());
-			glUniform3fv(pointLightLocation, 1, &pointLight[i].ambient.x);
-		}
-		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].diffuse").c_str());
-			glUniform3fv(pointLightLocation, 1, &pointLight[i].diffuse.x);
-		}
-		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].specular").c_str());
-			glUniform3fv(pointLightLocation, 1, &pointLight[i].specular.x);
-		}
-		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].constant").c_str());
-			glUniform1f(pointLightLocation, pointLight[i].constant);
-		}
-		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].linear").c_str());
-			glUniform1f(pointLightLocation, pointLight[i].linear);
-		}
-		for (int i = 0; i < NUM_POINT_LIGHTS; ++i) {
-			GLuint pointLightLocation = glGetUniformLocation(programID, ("uPointLights[" + std::to_string(i) + "].quadratic").c_str());
-			glUniform1f(pointLightLocation, pointLight[i].quadratic);
-		}
-
-
-		GLuint baseColorLocation = glGetUniformLocation(programID, "uBaseColor");
-		glUniform3f(
-			baseColorLocation, 0.9f, 0.9f, 0.9f);
-
-		Mat44f invProjCameraWolrd = invert(projCameraWorld);
-
-		GLuint invProjCameraWorldLocation = glGetUniformLocation(programID, "uInvProjCameraWorld");
-		glUniformMatrix4fv(
-			invProjCameraWorldLocation,
-			1, GL_TRUE,
-			invProjCameraWolrd.v);
 
 		// for camera
 		glUniformMatrix4fv(
@@ -218,11 +108,11 @@ namespace
 			1, GL_TRUE,
 			normalMatrix.v);
 
-		//Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
+		Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
 
-		//glUniform3fv(2, 1, &lightDir.x);      // Ambient
-		//glUniform3f(3, 0.9f, 0.9f, 0.9f);	  // Diffusion
-		//glUniform3f(4, 0.05f, 0.05f, 0.05f);  // Spectral
+		glUniform3fv(2, 1, &lightDir.x);      // Ambient 
+		glUniform3f(3, 0.9f, 0.9f, 0.9f);	  // Diffusion
+		glUniform3f(4, 0.05f, 0.05f, 0.05f);  // Spectral
 
 		glBindVertexArray(vao);
 		if (textureObjectId != 0)
@@ -240,28 +130,28 @@ namespace
 }
 
 namespace
-{
+{ 
 	SimpleMeshData spaceship() {
 
 		Vec3f color = { 0.35f, 0.35f, 0.3f };
 
 		//Body
-		SimpleMeshData coneLeft = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 2.5f, 0.f }));
-		SimpleMeshData coneRight = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(180)));
-		SimpleMeshData body = concatenate(coneLeft, coneRight);
-
+		SimpleMeshData coneLeft = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({0.f, 2.5f, 0.f})); 
+		SimpleMeshData coneRight = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(180))); 
+		SimpleMeshData body = concatenate(coneLeft, coneRight); 
+		
 		// Legs
 		SimpleMeshData legOne = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
 		SimpleMeshData interimOne = concatenate(body, legOne);
 		SimpleMeshData legTwo = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-135)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimTwo = concatenate(interimOne, legTwo);
+		SimpleMeshData interimTwo = concatenate(interimOne, legTwo); 
 		SimpleMeshData legThree = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
 		SimpleMeshData interimThree = concatenate(interimTwo, legThree);
 		SimpleMeshData legFour = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
 		SimpleMeshData interimFour = concatenate(interimThree, legFour);
-
+		
 		// Feet
-		SimpleMeshData footOne = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ -1.3f, 1.f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData footOne = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({-1.3f, 1.f, 0.0f}) * make_scaling(0.4f, 0.4f, 0.4f));
 		SimpleMeshData interimFive = concatenate(interimFour, footOne);
 		SimpleMeshData footTwo = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 1.3f, 1.f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
 		SimpleMeshData interimSix = concatenate(interimFive, footTwo);
@@ -275,10 +165,10 @@ namespace
 		SimpleMeshData interimNine = concatenate(interimEight, connectorOne);
 		SimpleMeshData connectorTwo = make_cylinder(false, size_t(64), color, make_translation({ -1.2f, 1.f, 0.f }) * make_scaling(2.4f, 0.1f, 0.1f));
 		SimpleMeshData spaceship = concatenate(interimNine, connectorTwo);
-		//		SimpleMeshData engine = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 0.55f, 0.f }) * make_rotation_z(angleToRadians(90)) * make_scaling(0.5f, 0.5f, 0.5f));
-			//	SimpleMeshData spaceship = concatenate(interimTen, engine);
+//		SimpleMeshData engine = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 0.55f, 0.f }) * make_rotation_z(angleToRadians(90)) * make_scaling(0.5f, 0.5f, 0.5f));
+	//	SimpleMeshData spaceship = concatenate(interimTen, engine);
 
-				// Ickle lickle space ship (so cute!)
+		// Ickle lickle space ship (so cute!)
 		for (int vertices = 0; vertices < spaceship.positions.size(); vertices++) {
 			spaceship.positions[vertices] *= 0.18;
 		}
@@ -416,8 +306,6 @@ int main() try
 	 	{ GL_FRAGMENT_SHADER, "assets/launch.frag" } 
 	 	}); 
 
-	//state.prog = &prog2;  //set shader program to state
-
 	 // Load the launchpad
 	 auto launch = load_wavefront_obj("assets/landingpad.obj");
 	 size_t launchVertexCount = launch.positions.size();
@@ -426,29 +314,27 @@ int main() try
 	 // Move the 1st launch object
 	 for (size_t i = 0; i < launchVertexCount; i++)
 	 {
-		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, -50.f };
+		 launch.positions[i] = launch.positions[i] + Vec3f{ 0.f, -0.975f, -50.f }; 
 	 }
 
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_1 = create_vao(launch);
-
 	 // Return positions back to normal
 	 launch.positions = positions;
 
 	 // Move the 1st launch object
 	 for (size_t i = 0; i < launchVertexCount; i++)
 	 {
-		 launch.positions[i] = launch.positions[i] + Vec3f{ -20.f, -0.975f, -15.f };
+		 launch.positions[i] = launch.positions[i] + Vec3f{ -20.f, -0.975f, -15.f }; 
 	 }
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_2 = create_vao(launch);
 
-
 	 // SHIP CREATION SECTION
-   //-------------------------------------------------------------------
+	//-------------------------------------------------------------------
 
 
-	// Create the spaceship
+	 // Create the spaceship
 	 auto ship = spaceship();
 	 size_t shipVertexCount = ship.positions.size();
 	 // Store original coordinates 
@@ -475,12 +361,6 @@ int main() try
 	 GLuint ship_two_vao = create_vao(ship);
 
 	 Mat44f spaceshipModel2World;
-
-
-	//-------------------------------------------------------------------
-
-	 // Draw all arrays
-
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -525,8 +405,6 @@ int main() try
 
 		Mat44f model2World = make_rotation_y(0);
 
-
-
 		// Animation acceleration 
 		Mat44f spaceship2World;
 		if (state.moveUp == true) {
@@ -535,14 +413,11 @@ int main() try
 			state.acceleration = state.acceleration * 1.0015;
 			// We want a noticeable curve, so make it higher than the standard acceleration
 			state.spaceshipCurve = state.spaceshipCurve * 1.0025;
-			spaceship2World = model2World * make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });
+			spaceship2World = model2World * make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve }) ;
 		}
 		else {
 			spaceship2World = model2World;
 		}
-
-
-
 
 
 		Mat33f normalMatrix = mat44_to_mat33(transpose(invert(model2World)));
@@ -585,6 +460,7 @@ int main() try
 			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
 		}
 
+
 		T = make_translation(state.camControl.movementVec);
 
 		Mat44f world2Camera = Rx * Ry * T;
@@ -601,9 +477,6 @@ int main() try
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
 
 		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
-
-
-		Mat44f invProjCameraWolrd = invert(projCameraWorld);
 
 		//ENDOF TODO
 
@@ -627,7 +500,6 @@ int main() try
 
 		// Draw second ship
 		mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
-
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
@@ -782,8 +654,7 @@ namespace
 			// Spaceship animation control
 			if (GLFW_KEY_F == aKey) {
 				state->moveUp = true;
-			}
-			else if (GLFW_KEY_R == aKey) {
+			} else if (GLFW_KEY_R == aKey) {
 				state->moveUp = false;
 				state->spaceshipOrigin = 0.f;
 				state->spaceshipCurve = 0.f;

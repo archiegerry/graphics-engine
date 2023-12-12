@@ -95,8 +95,6 @@ Mat44f make_rotation_x( float aAngle ) noexcept
 {
 	Mat44f rotationMatrix = kIdentity44f;
 
-
-	// Get the cosine and sine of 'aAngle'
 	float cosTheta = std::cos(aAngle);
 	float sinTheta = std::sin(aAngle);
 
@@ -157,12 +155,13 @@ Mat44f make_translation( Vec3f aTranslation ) noexcept
 inline
 Mat44f make_scaling( float aSX, float aSY, float aSZ ) noexcept
 {
-	//TODO: your implementation goes here
-	//TODO: remove the following when you start your implementation
-	(void)aSX;  // Avoid warnings about unused arguments until the function
-	(void)aSY;  // is properly implemented.
-	(void)aSZ;
-	return kIdentity44f;
+	Mat44f scalingMatrix = kIdentity44f;
+	
+	scalingMatrix(0,0) = aSX; 
+	scalingMatrix(1,1) = aSY;
+	scalingMatrix(2,2) = aSZ;
+
+	return scalingMatrix;
 }
 
 
@@ -202,6 +201,13 @@ Mat44f transpose(Mat44f const& aM) noexcept
 	return ret;
 }
 
+inline
+float angleToRadians(float const& angle) noexcept
+{
+	float ret;
+	ret = angle * (3.1415926535897932384626433832795f / 180.f);
+	return ret;
+}
 
 
 #endif // MAT44_HPP_E7187A26_469E_48AD_A3D2_63150F05A4CA
