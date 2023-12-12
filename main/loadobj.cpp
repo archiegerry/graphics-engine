@@ -21,7 +21,7 @@ SimpleMeshData load_wavefront_obj(char const* aPath)
 
 	for (auto const& shape : result.shapes) //all of the results in the shape
 	{
-		for (std::size_t i = 0; i < shape.mesh.indices.size(); ++i) //all of the indices in the shape
+		for (std::size_t i = 0; i < shape.mesh.indices.size(); i++) //all of the indices in the shape
 		{
 			auto const& idx = shape.mesh.indices[i];
 

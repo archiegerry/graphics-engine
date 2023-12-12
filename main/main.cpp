@@ -72,6 +72,27 @@ namespace
 		~GLFWWindowDeleter();
 		GLFWwindow* window;
 	};
+
+	struct DirectLight
+	{
+		Vec3f direction;
+		Vec3f ambient;
+		Vec3f diffuse;
+		Vec3f specular;
+	};
+
+	struct PointLight
+	{
+		Vec3f position;
+		Vec3f ambient;
+		Vec3f diffuse;
+		Vec3f specular;
+		float constant;
+		float linear;
+		float quadratic;
+	};
+
+#define NUM_POINT_LIGHTS 3
 }
 
 namespace
@@ -90,75 +111,36 @@ namespace
 	{
 		glUseProgram(programID);
 
-		/*
-
-		std::vector<Vec3f> lightPositions = {
-		Vec3f{1.0f, 2.0f, 3.0f},
-		Vec3f{-2.0f, 0.0f, 1.0f}, 
-		Vec3f{0.0f, 1.0f, -3.0f} 
-		};
-
-		std::vector<Vec3f> lightDiffuse = {
-		Vec3f{1.0f, 2.0f, 3.0f},
-		Vec3f{-2.0f, 0.0f, 1.0f},
-		Vec3f{0.0f, 1.0f, -3.0f}
-		};
-
-		Vec3f sceneAmbient = { 0.1f, 0.1f, 0.1f }; */
-
-		//baseColor[] = {1.0f, 1.0f, 1.0f};
-
-		struct DirectLight
-		{
-			Vec3f direction;
-			Vec3f ambient;
-			Vec3f diffuse;
-			Vec3f specular;
-		};
-
 		DirectLight directLight = {} ;
 		directLight.direction =		Vec3f{ -1.f,-05.f,0.8f };
 		directLight.ambient =		Vec3f{ 0.9f, 0.25f, 0.3f };
 		directLight.diffuse =		Vec3f{ 0.7f, 0.42f, 0.26f };
 		directLight.specular =		Vec3f{ 0.5f, 0.5f, 0.5f };
 
-		struct PointLight
-		{
-			Vec3f position;
-			Vec3f ambient;
-			Vec3f diffuse;
-			Vec3f specular;
-			float constant;
-			float linear;
-			float quadratic;
-		};
-		#define NUM_POINT_LIGHTS 3
-
 		PointLight pointLight[NUM_POINT_LIGHTS] {} ;
-		
-		pointLight[0].position =	Vec3f{ 1.0f, 2.0f, 3.0f };
+		pointLight[0].position =	Vec3f{ 0.0f, 1.0f, -5.0f };
 		pointLight[0].ambient =		Vec3f{ 0.9f, 0.9f, 0.9f };
 		pointLight[0].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
 		pointLight[0].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
 		pointLight[0].constant =	1.0f;
-		pointLight[0].linear =		0.1f;
-		pointLight[0].quadratic =	0.5f;
+		pointLight[0].linear =		0.7f;
+		pointLight[0].quadratic =	1.8f;
 
-		pointLight[1].position =	Vec3f{ -2.0f, 0.0f, 1.0f };
+		pointLight[1].position =	Vec3f{ -20.0f, 0.0f, 00.0f };
 		pointLight[1].ambient =		Vec3f{ 0.1f, 0.1f, 0.1f };
 		pointLight[1].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
 		pointLight[1].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
 		pointLight[1].constant =	1.0f;
-		pointLight[1].linear =		0.09f;
-		pointLight[1].quadratic =	0.032f;
+		pointLight[1].linear =		0.5f;
+		pointLight[1].quadratic =	10.032f;
 
 		pointLight[2].position =	Vec3f{ 0.0f, 1.0f, -3.0f };
 		pointLight[2].ambient =		Vec3f{ 0.1f, 0.1f, 0.1f };
 		pointLight[2].diffuse =		Vec3f{ 0.5f, 0.5f, 0.5f };
 		pointLight[2].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
 		pointLight[2].constant =	1.0f;
-		pointLight[2].linear =		0.09f;
-		pointLight[2].quadratic =	0.032f;
+		pointLight[2].linear =		0.5f;
+		pointLight[2].quadratic =	10.032f;
 
 
 		GLuint directLightLocation = glGetUniformLocation(programID, "uDirectLight.direction");
@@ -518,7 +500,7 @@ int main() try
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount,  state, textures, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the first launchpad
 		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);

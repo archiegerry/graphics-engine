@@ -31,9 +31,9 @@ vec3 getDirLight(DirectLight light, vec3 normal, vec3 viewDir)
 	float diff = max(dot(normal, lightDir), 0.0);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
 
-	vec3 ambient = light.ambient * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));
-	vec3 diffuse = light.diffuse * diff * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));
-	vec3 specular = light.specular * spec * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));
+	vec3 ambient = light.ambient * v2fColor * uBaseColor;
+	vec3 diffuse = light.diffuse * diff * v2fColor * uBaseColor;
+	vec3 specular = light.specular * spec * v2fColor * uBaseColor;
 
 	return (ambient + diffuse + specular);
 }
@@ -66,9 +66,9 @@ vec3 getPointLight(PointLight light, vec3 normal, vec2 fragPos, vec3 viewDir)
 	float distance = length(light.position - fragmentPosition.xyz);
 	float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
-	vec3 ambient = light.ambient * uBaseColor; //material information should go here
-	vec3 diffuse = light.diffuse * diff * uBaseColor;
-	vec3 specular = light.specular * spec * uBaseColor;
+	vec3 ambient = light.ambient * v2fColor; //material information should go here
+	vec3 diffuse = light.diffuse * diff * v2fColor;
+	vec3 specular = light.specular * spec * v2fColor;
 
 	
 	ambient *= attenuation;
