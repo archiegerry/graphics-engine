@@ -37,20 +37,32 @@ SimpleMeshData make_cube(Vec3f aColor, Mat44f aPreTransform)
         {0.f, -1.f, 0.f}   // Bottom face normal
     };
 
-    
-    // Create triangles using indices and populate pos vector
-    for (const auto& face : indices) {
-        for (int i = 0; i < 6; ++i) {
-
-            pos.emplace_back(vertices[face[i]]);
+    // Determine positions and normals
+    for (int faceCounter = 0; faceCounter < indices.size(); faceCounter++) { 
+        const auto& face = indices[faceCounter]; 
+        for (int i = 0; i < face.size(); i++) { 
+            pos.emplace_back(vertices[face[i]]); 
+            normals.emplace_back(faceNormals[faceCounter]); 
         }
     }
 
+    // Apply matrix pretransform
+    for (size_t i = 0; i < pos.size(); ++i) {
+        Vec4f p4{ pos[i].x, pos[i].y, pos[i].z, 1.f };  
+        Vec4f t = aPreTransform * p4; 
+        t /= t.w; 
+        pos[i] = Vec3f{ t.x, t.y, t.z }; 
+
+        // Transform normals (ignore translation)
+        Vec4f n4{ normals[i].x, normals[i].y, normals[i].z, 1.f }; 
+        Vec4f tn = aPreTransform * n4; 
+        normals[i] = normalize(Vec3f{ tn.x, tn.y, tn.z }); 
+    }
 
     SimpleMeshData cube;
     cube.positions = pos; // Set positions for the cube
     cube.colors = std::vector<Vec3f>(pos.size(), aColor);
-    //cube.normals = normals;
+    cube.normals = normals;
     return cube;
 }
     

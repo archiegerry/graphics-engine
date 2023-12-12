@@ -126,20 +126,47 @@ namespace
 { 
 	SimpleMeshData spaceship() {
 
-		SimpleMeshData coneLeft = make_cone(false, size_t(64), Vec3f{ 0.8f, 0.8f, 0.8f }, make_translation({0.f, 1.5f, 0.f}));
-		SimpleMeshData coneRight = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_z(angleToRadians(180)));
-		SimpleMeshData body = concatenate(coneLeft, coneRight);
-		SimpleMeshData footOne = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimOne = concatenate(body, footOne);
-		SimpleMeshData footTwo = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_z(angleToRadians(-135)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimTwo = concatenate(interimOne, footTwo); 
-		SimpleMeshData footThree = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimThree = concatenate(interimTwo, footThree);
-		SimpleMeshData footFour = make_cylinder(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData spaceship = concatenate(interimThree, footFour);
+		Vec3f color = { 0.35f, 0.35f, 0.3f };
+
+		//Body
+		SimpleMeshData coneLeft = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({0.f, 2.5f, 0.f})); 
+		SimpleMeshData coneRight = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(180))); 
+		SimpleMeshData body = concatenate(coneLeft, coneRight); 
+		
+		// Legs
+		SimpleMeshData legOne = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimOne = concatenate(body, legOne);
+		SimpleMeshData legTwo = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-135)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimTwo = concatenate(interimOne, legTwo); 
+		SimpleMeshData legThree = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimThree = concatenate(interimTwo, legThree);
+		SimpleMeshData legFour = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData interimFour = concatenate(interimThree, legFour);
+		
+		// Feet
+		SimpleMeshData footOne = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({-1.3f, 1.f, 0.0f}) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimFive = concatenate(interimFour, footOne);
+		SimpleMeshData footTwo = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 1.3f, 1.f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimSix = concatenate(interimFive, footTwo);
+		SimpleMeshData footThree = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.f, -1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimSeven = concatenate(interimSix, footThree);
+		SimpleMeshData footFour = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.0f, 1.f, 1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData interimEight = concatenate(interimSeven, footFour);
+
+		// Middle bars and other shiz
+		SimpleMeshData connectorOne = make_cylinder(false, size_t(64), color, make_translation({ -0.f, 1.f, 1.2f }) * make_rotation_y(angleToRadians(90)) * make_scaling(2.4f, 0.1f, 0.1f));
+		SimpleMeshData interimNine = concatenate(interimEight, connectorOne);
+		SimpleMeshData connectorTwo = make_cylinder(false, size_t(64), color, make_translation({ -1.2f, 1.f, 0.f }) * make_scaling(2.4f, 0.1f, 0.1f));
+		SimpleMeshData spaceship = concatenate(interimNine, connectorTwo);
+//		SimpleMeshData engine = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 0.55f, 0.f }) * make_rotation_z(angleToRadians(90)) * make_scaling(0.5f, 0.5f, 0.5f));
+	//	SimpleMeshData spaceship = concatenate(interimTen, engine);
+
+		// Ickle lickle space ship (so cute!)
+		for (int vertices = 0; vertices < spaceship.positions.size(); vertices++) {
+			spaceship.positions[vertices] *= 0.25;
+		}
 
 		return spaceship;
-
 	}
 }
 
@@ -295,13 +322,35 @@ int main() try
 	 }
 	 // Create a VAO for the first launchpad
 	 GLuint launch_vao_2 = create_vao(launch);
+
+	 // SHIP CREATION SECTION
 	//-------------------------------------------------------------------
 
 
 	 // Create the spaceship
 	 auto ship = spaceship();
-	 size_t shipVertices = ship.positions.size();
-	 GLuint shipVao = create_vao(ship);
+	 size_t shipVertexCount = ship.positions.size();
+	 std::vector<Vec3f> shipPositions = ship.positions;
+
+	 // Move the 1st ship
+	 for (size_t i = 0; i < shipVertexCount; i++)
+	 {
+		 ship.positions[i] = ship.positions[i] + Vec3f{ 0.f, -0.975f, -50.f };
+	 }
+
+	 // Create VAO for first ship
+	 GLuint ship_one_vao = create_vao(ship);
+	 // Return positions back to normal
+	 ship.positions = shipPositions;
+
+	 // Move the 2nd ship
+	 for (size_t i = 0; i < shipVertexCount; i++)
+	 {
+		 ship.positions[i] = ship.positions[i] + Vec3f{ -20.f, -0.975f, -15.f };
+	 }
+
+	 // Create VAO for second ship
+	 GLuint ship_two_vao = create_vao(ship);
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
@@ -417,7 +466,11 @@ int main() try
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		mesh_renderer(shipVao, shipVertices, state, 0, prog2.programId(), projCameraWorld, normalMatrix); 
+		// Draw first ship
+		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+
+		// Draw second ship
+		mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
