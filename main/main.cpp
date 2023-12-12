@@ -276,6 +276,7 @@ int main() try
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_SCISSOR_TEST);
 	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
 	//endofTODO
 
@@ -288,7 +289,7 @@ int main() try
 	int iwidth, iheight;
 	glfwGetFramebufferSize( window, &iwidth, &iheight );
 
-	glViewport( 0, 0, iwidth, iheight );
+	//glViewport( 0, 0, iwidth, iheight );
 
 	//load shader program
 	ShaderProgram prog({
@@ -399,10 +400,20 @@ int main() try
 					glfwGetFramebufferSize( window, &nwidth, &nheight );
 				} while( 0 == nwidth || 0 == nheight );
 			}
+			
+			int halfWidth = nwidth / 2;
 
-			glViewport( 0, 0, nwidth, nheight );
+			
+			glViewport( 0, 0, halfWidth, nheight );
+			glScissor(0, 0, halfWidth, nheight);
+			//glDisable(GL_SCISSOR_TEST);
+
+			// glViewport( halfWidth, 0, halfWidth, nheight );
+			// glEnable(GL_SCISSOR_TEST);
+			// glScissor(halfWidth, 0, halfWidth, nheight);
 		}
 
+		
 		//TODO: update state
 		auto const now = Clock::now();
 		float dt = std::chrono::duration_cast<Secondsf>(now - last).count(); //difference in time since last frame
@@ -489,6 +500,69 @@ int main() try
 
 		//ENDOF TODO
 
+		
+		// Draw scene
+		OGL_CHECKPOINT_DEBUG();
+
+		//TODO: draw frame
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+		// Draw the map
+		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
+
+		// Draw the first launchpad
+		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+
+		// Draw the second launchpad
+		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+
+		// Draw first ship
+		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+
+		// Draw second ship
+		//mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+
+		glBindVertexArray(0);
+		//glBindVertexArray(1);
+
+		glUseProgram(0);
+		//glUseProgram(1);
+
+		//ENDOF TODO
+
+		OGL_CHECKPOINT_DEBUG();
+
+		// Display results
+		//glfwSwapBuffers( window );
+
+	//------------------------------------------------------------------------
+	//the second screen
+
+		// Check if window was resized.
+		//float fbwidth1, fbheight1;
+		//{
+		int nwidth1, nheight1;
+		glfwGetFramebufferSize( window, &nwidth1, &nheight1 );
+
+		//fbwidth1 = float(nwidth1);
+		//fbheight1 = float(nheight1);
+
+		if( 0 == nwidth1 || 0 == nheight1 )
+		{
+			// Window minimized? Pause until it is unminimized.
+			// This is a bit of a hack.
+			do
+			{
+				glfwWaitEvents();
+				glfwGetFramebufferSize( window, &nwidth1, &nheight1 );
+			} while( 0 == nwidth1 || 0 == nheight1 );
+		}
+		
+		int halfWidth1 = nwidth1 / 2;
+
+		glViewport( halfWidth1, 0, halfWidth1, nheight1 );
+		glScissor(halfWidth1, 0, halfWidth1, nheight1);
+
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
@@ -522,6 +596,7 @@ int main() try
 
 		// Display results
 		glfwSwapBuffers( window );
+
 	}
 
 	// Cleanup.
