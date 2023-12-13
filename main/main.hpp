@@ -67,7 +67,7 @@ namespace
 		float curve = 0.f;
 
 		bool split;
-		int mode;
+		int mode = 0;
 	};
 
 	void glfw_callback_error_(int, char const*);

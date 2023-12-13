@@ -90,8 +90,9 @@ int main() try
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
-
 	glEnable(GL_SCISSOR_TEST);
+
+	
 
 	//endofTODO
 
@@ -239,7 +240,6 @@ int main() try
 				glScissor(0, 0, halfWidth, nheight);
 			}
 
-			glViewport( 0, 0, nwidth, nheight );
 		}
 
 		//TODO: update state
@@ -488,10 +488,22 @@ int main() try
 			//TODO: draw frame
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			// Draw second ship
-			//mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+			// Draw the map
+			mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceship2World,
+				normalMatrix);
 
-		//renderSprites(projCameraWorld, prog3.programId());
+			// Draw the first launchpad
+			mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+				normalMatrix);
+
+			// Draw the second launchpad
+			mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+				normalMatrix);
+
+			// Draw ship
+			mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceship2World,
+				normalMatrix);
+
 
 			glBindVertexArray(0);
 			//glBindVertexArray(1);
