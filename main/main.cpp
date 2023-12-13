@@ -122,35 +122,35 @@ namespace
 		glUseProgram(programID);
 
 		DirectLight directLight = {};
-		directLight.direction =  Vec3f{ -1.f,-05.f,0.8f };
+		directLight.direction =  Vec3f{ 0.5f,-0.5f,0.8f };
 		directLight.ambient = Vec3f{ 0.25f, 0.25f, 0.25f };
-		directLight.diffuse = Vec3f{ 0.26f, 0.26f, 0.26f };
-		directLight.specular = Vec3f{ 0.5f, 0.5f, 0.5f };
+		directLight.diffuse = Vec3f{ 0.34f, 0.35f, 0.35f };
+		directLight.specular = Vec3f{ 0.45f, 0.35f, 0.35f };
 
-		PointLight pointLight[NUM_POINT_LIGHTS]{};
-		pointLight[0].position = V4toV3( relativeto * Vec4f{ -0.5f, -0.5f, -0.5f , 0.f}) + Vec3f{ 0.f, -0.975f, -50.f };
-		pointLight[0].ambient =  Vec3f{ 0.01f, 0.01f, 0.9f };
-		pointLight[0].diffuse = Vec3f{ 0.05f, 0.02f, 0.8f };
-		pointLight[0].specular = Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[0].constant = 1.0f;
-		pointLight[0].linear = 0.08f;
-		pointLight[0].quadratic = 0.05f;
+		PointLight pointLight[NUM_POINT_LIGHTS] {};
+		pointLight[0].position =	Vec3f{ relativeto(0,3),relativeto(1,3),relativeto(2,3) } + Vec3f{ -0.5f, 0.5f, -0.5f } + Vec3f{ 0.f, -0.975f, -50.f };
+		pointLight[0].ambient =		Vec3f{ 0.01f, 0.01f, 0.9f };
+		pointLight[0].diffuse =		Vec3f{ 0.05f, 0.02f, 0.8f };
+		pointLight[0].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[0].constant =	1.0f;
+		pointLight[0].linear =		5.7f;
+		pointLight[0].quadratic =	4.8f;
 
-		pointLight[1].position = V4toV3(relativeto * Vec4f{ -0.5f, -0.5f, 0.5f , 0.f }) + Vec3f{ 0.f, -0.975f, -50.f };
-		pointLight[1].ambient = Vec3f{ 0.1f, 0.9f, 0.1f };
-		pointLight[1].diffuse = Vec3f{ 0.2f, 0.8f, 0.1f };
-		pointLight[1].specular = Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[1].constant = 1.0f;
-		pointLight[1].linear = 0.08f;
-		pointLight[1].quadratic = 0.032f;
+		pointLight[1].position =	Vec3f{ relativeto(0,3),relativeto(1,3),relativeto(2,3) } + Vec3f{ 0.5f, 0.5f, -0.5f } + Vec3f{ 0.f, -0.975f, -50.f };
+		pointLight[1].ambient =		Vec3f{ 0.1f, 0.9f, 0.1f };
+		pointLight[1].diffuse =		Vec3f{ 0.2f, 0.8f, 0.1f };
+		pointLight[1].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[1].constant =	1.0f;
+		pointLight[1].linear =		0.07f;
+		pointLight[1].quadratic =	0.08f;
 
-		pointLight[2].position = V4toV3(relativeto * Vec4f{ 0.5f, -0.5f, 0.5f , 0.f }) + Vec3f{ 0.f, -0.975f, -50.f };
-		pointLight[2].ambient = Vec3f{ 0.9f, 0.1f, 0.1f };
-		pointLight[2].diffuse = Vec3f{ 0.9f, 0.2f, 0.1f };
-		pointLight[2].specular = Vec3f{ 0.5f, 0.5f, 0.5f };
-		pointLight[2].constant = 1.0f;
-		pointLight[2].linear = 0.8f;
-		pointLight[2].quadratic = 0.032f;
+		pointLight[2].position =	Vec3f{ relativeto(0,3),relativeto(1,3),relativeto(2,3) } + Vec3f{ -0.5f, 0.5f, 0.5f } + Vec3f{ 0.f, -0.975f, -50.f };
+		pointLight[2].ambient =		Vec3f{ 0.9f, 0.1f, 0.1f };
+		pointLight[2].diffuse =		Vec3f{ 0.9f, 0.2f, 0.1f };
+		pointLight[2].specular =	Vec3f{ 0.5f, 0.5f, 0.5f };
+		pointLight[2].constant =	1.0f;
+		pointLight[2].linear =		0.07f;
+		pointLight[2].quadratic =	0.08f;
 
 
 		GLuint directLightLocation = glGetUniformLocation(programID, "uDirectLight.direction");
@@ -255,34 +255,38 @@ namespace
 		Vec3f color = { 0.35f, 0.35f, 0.3f };
 
 		//Body
-		SimpleMeshData coneLeft = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({0.f, 2.5f, 0.f})); 
-		SimpleMeshData coneRight = make_cone(false, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(180))); 
-		SimpleMeshData body = concatenate(coneLeft, coneRight); 
+		SimpleMeshData coneLeft = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({0.05f, 4.9f, 0.f}) * make_scaling(0.6f, 1.3f, 1.6f)); 
+		SimpleMeshData coneRight = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ -0.05f, 4.9f, 0.f }) * make_scaling(0.6f, 1.3f, 1.6f) * make_rotation_z(angleToRadians(180)));
+		SimpleMeshData body = concatenate(coneLeft, coneRight);
+		SimpleMeshData coneLeft2 = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.0f, 7.5f, 0.f }) * make_scaling(0.6f*2, 1.3f*1.2f, 1.6f*1.5));
+		SimpleMeshData body2 = concatenate(body, coneLeft2);
+		SimpleMeshData coneRight2 = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.0f, 7.5f, 0.f }) * make_scaling(0.6f * 2, 1.3f * 1.3f, 1.6f * 1.5) * make_rotation_z(angleToRadians(180)));
+		SimpleMeshData body3 = concatenate(body2, coneRight2);
 		
 		// Legs
-		SimpleMeshData legOne = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimOne = concatenate(body, legOne);
-		SimpleMeshData legTwo = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-135)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData legOne = make_cylinder(true, size_t(32), color, make_translation({ 0.f, 4.5f, 0.f }) * make_rotation_z(angleToRadians(-65)) * make_scaling(4.8f, 0.1f, 0.2f));
+		SimpleMeshData interimOne = concatenate(body3, legOne);
+		SimpleMeshData legTwo = make_cylinder(true, size_t(32), color, make_translation({ 0.f, 4.5f, 0.f }) * make_rotation_z(angleToRadians(65+180)) * make_scaling(4.8f, 0.1f, 0.2f));
 		SimpleMeshData interimTwo = concatenate(interimOne, legTwo); 
-		SimpleMeshData legThree = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData legThree = make_cylinder(true, size_t(32), color, make_translation({ 0.f, 4.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45-20)) * make_scaling(4.8f, 0.1f, 0.2f));
 		SimpleMeshData interimThree = concatenate(interimTwo, legThree);
-		SimpleMeshData legFour = make_cylinder(true, size_t(64), color, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
+		SimpleMeshData legFour = make_cylinder(true, size_t(32), color, make_translation({ 0.f, 4.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45-20)) * make_scaling(4.8f, 0.1f, 0.2f));
 		SimpleMeshData interimFour = concatenate(interimThree, legFour);
 		
 		// Feet
-		SimpleMeshData footOne = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({-1.3f, 1.f, 0.0f}) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData footOne = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({-1.3f, 1.5f, 0.0f}) * make_scaling(0.4f, 0.4f, 0.4f));
 		SimpleMeshData interimFive = concatenate(interimFour, footOne);
-		SimpleMeshData footTwo = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 1.3f, 1.f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData footTwo = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 1.3f, 1.5f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
 		SimpleMeshData interimSix = concatenate(interimFive, footTwo);
-		SimpleMeshData footThree = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.f, -1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData footThree = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 1.5f, -1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
 		SimpleMeshData interimSeven = concatenate(interimSix, footThree);
-		SimpleMeshData footFour = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.0f, 1.f, 1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
+		SimpleMeshData footFour = make_cube(Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.0f, 1.5f, 1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
 		SimpleMeshData interimEight = concatenate(interimSeven, footFour);
 
 		// Middle bars and other shiz
-		SimpleMeshData connectorOne = make_cylinder(false, size_t(64), color, make_translation({ -0.f, 1.f, 1.2f }) * make_rotation_y(angleToRadians(90)) * make_scaling(2.4f, 0.1f, 0.1f));
+		SimpleMeshData connectorOne = make_cylinder(false, size_t(64), color, make_translation({ -0.f, 1.5f, 1.2f }) * make_rotation_y(angleToRadians(90)) * make_scaling(2.4f, 0.1f, 0.1f));
 		SimpleMeshData interimNine = concatenate(interimEight, connectorOne);
-		SimpleMeshData connectorTwo = make_cylinder(false, size_t(64), color, make_translation({ -1.2f, 1.f, 0.f }) * make_scaling(2.4f, 0.1f, 0.1f));
+		SimpleMeshData connectorTwo = make_cylinder(false, size_t(64), color, make_translation({ -1.2f, 1.5f, 0.f }) * make_scaling(2.4f, 0.1f, 0.1f));
 		SimpleMeshData spaceship = concatenate(interimNine, connectorTwo);
 //		SimpleMeshData engine = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 0.55f, 0.f }) * make_rotation_z(angleToRadians(90)) * make_scaling(0.5f, 0.5f, 0.5f));
 	//	SimpleMeshData spaceship = concatenate(interimTen, engine);
@@ -527,7 +531,7 @@ int main() try
 		// Animation acceleration 
 		Mat44f spaceship2World;
 		if (state.moveUp == true) {
-			state.spaceshipOrigin = state.spaceshipOrigin + (state.acceleration * dt);
+			state.spaceshipOrigin = state.spaceshipOrigin + (state.acceleration *  2 * dt);
 			state.spaceshipCurve = state.spaceshipCurve + (state.curve * dt);
 			state.acceleration = state.acceleration * 1.0015f;
 			// We want a noticeable curve, so make it higher than the standard acceleration
@@ -606,16 +610,20 @@ int main() try
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, model2World, spaceshipModel2World, normalMatrix);
+		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, model2World,
+			spaceship2World, normalMatrix);
 
 		// Draw the first launchpad
-		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceshipModel2World, normalMatrix);
+		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World,
+			spaceship2World, normalMatrix);
 
 		// Draw the second launchpad
-		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceshipModel2World, normalMatrix);
+		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World,
+			spaceship2World, normalMatrix);
 
 		// Draw first ship
-		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceshipModel2World, normalMatrix);
+		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World,
+			spaceship2World, normalMatrix);
 
 		// Draw second ship
 		//mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, normalMatrix);
