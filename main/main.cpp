@@ -350,16 +350,20 @@ int main() try
 		glDrawArrays(GL_POINTS, 0, 1); // Draw one point  
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount, textures, prog.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceship2World,
+			normalMatrix);
 
 		// Draw the first launchpad
-		mesh_renderer(launch_vao_1, launchVertexCount, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+			normalMatrix);
 
 		// Draw the second launchpad
-		mesh_renderer(launch_vao_2, launchVertexCount, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+			normalMatrix);
 
 		// Draw ship
-		mesh_renderer(ship_one_vao, shipVertexCount, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceship2World,
+			normalMatrix);
 
 		
 		

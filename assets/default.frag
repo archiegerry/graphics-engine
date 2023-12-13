@@ -3,14 +3,80 @@
 in vec3 v2fColor;
 in vec3 v2fNormal;
 in vec2 v2fTextureCoords;
+in vec4 fragmentPosition;
 
 layout (location=0) out vec3 oColor;
+//layout (location=4) uniform vec3 uSceneAmbient;
+layout (location=6) uniform mat4 uInvProjCameraWorld;
 
-layout (location=2) uniform vec3 uLightDir; //direction of the light to all surfaces
-layout (location=3) uniform vec3 uLightDiffuse;
-layout (location=4) uniform vec3 uSceneAmbient;
-//layout (location=5) uniform vec3 uBaseColor;
+layout (location=7) uniform vec3 uBaseColor;
+
 layout (binding=0) uniform sampler2D uTexture;
+
+struct DirectLight
+{
+	vec3 direction;
+	 
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+uniform DirectLight uDirectLight;
+
+vec3 getDirLight(DirectLight light, vec3 normal, vec3 viewDir)
+{
+	vec3 lightDir = normalize(-light.direction);
+	vec3 reflectDir = reflect(-lightDir, normal);
+
+	float diff = max(dot(normal, lightDir), 0.0);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+
+	vec3 ambient = light.ambient * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));
+	vec3 diffuse = light.diffuse * diff * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));
+	vec3 specular = light.specular * spec * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));
+
+	return (ambient + diffuse + specular);
+}
+
+struct PointLight
+{
+	vec3 position;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	float constant;
+	float linear;
+	float quadratic;
+};
+#define NUM_POINT_LIGHTS 3
+	uniform PointLight uPointLights[NUM_POINT_LIGHTS];
+
+
+vec3 getPointLight(PointLight light, vec3 normal, vec2 fragPos, vec3 viewDir)
+{
+	vec3 lightDir = normalize(light.position - fragmentPosition.xyz);
+
+	vec3 reflectDir = reflect(-lightDir, normal);
+	
+	// -- Diffuse -- //
+	float diff = max(dot(normal, lightDir), 0.0);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+
+	float distance = length(light.position - fragmentPosition.xyz);
+	float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+
+	vec3 ambient = light.ambient * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));; //material information should go here
+	vec3 diffuse = light.diffuse * diff * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));;
+	vec3 specular = light.specular * spec * uBaseColor * vec3(texture(uTexture, v2fTextureCoords));;
+	
+	ambient *= attenuation;
+	diffuse *= attenuation;
+	specular *= attenuation;
+
+	return (ambient + diffuse + specular);
+}
 
 
 void main()
@@ -18,12 +84,31 @@ void main()
 	// vec3 normal = normalize(v2fNormal);
 	vec3 normal = normalize(v2fNormal);
 
-	float nDotL = max(0.0 , dot(normal, uLightDir));
+	vec4 viewPos4d = uInvProjCameraWorld * fragmentPosition.xyzw;
+
+	vec3 viewPos = viewPos4d.xyz / viewPos4d.w;
+
+    vec3 viewDir = normalize(viewPos - fragmentPosition.xyz);
+
+	// directional lighting
+
+	vec3 resultantLighting = getDirLight(uDirectLight, normal, viewDir);
+	//vec3 resultantLighting2 = resultantLighting;
+
+	for(int i = 0; i < NUM_POINT_LIGHTS; i++)
+	{
+		resultantLighting += getPointLight(uPointLights[i], normal, fragmentPosition.xy, viewDir);
+	}
 
 	//oColor = texture(uTexture, v2fTextureCoords).rgb;
-	//oColor = (uSceneAmbient + nDotL * uLightDiffuse) * v2fColor;
-	oColor = texture(uTexture, v2fTextureCoords).rgb * (uSceneAmbient + nDotL * uLightDiffuse); //might not work
-
+	oColor = resultantLighting;
+	//fragColor = vec4(resultantLighting, 1.0f);
 	//oColor = uBaseColor * v2fColor;
+
+	
+	//oColor = texture(uTexture, v2fTextureCoords).rgb * resultantLighting; //* (resultantLighting); //might not work
+
+	//oColor = (uSceneAmbient + nDotL * uLightDiffuse) * v2fColor;
+	//oColor = texture(uTexture, v2fTextureCoords).rgb * (uSceneAmbient + nDotL * uLightDiffuse); //might not work
 
 }
