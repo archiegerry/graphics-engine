@@ -63,6 +63,9 @@ namespace
 		float spaceshipCurve = 0.f;
 		float acceleration = 0.1f;
 		float curve = 0.01f;
+
+		//split screen contorl 
+		bool split;
 	};
 
 	void glfw_callback_error_( int, char const* );
@@ -403,14 +406,14 @@ int main() try
 			
 			int halfWidth = nwidth / 2;
 
-			
-			glViewport( 0, 0, halfWidth, nheight );
-			glScissor(0, 0, halfWidth, nheight);
-			//glDisable(GL_SCISSOR_TEST);
-
-			// glViewport( halfWidth, 0, halfWidth, nheight );
-			// glEnable(GL_SCISSOR_TEST);
-			// glScissor(halfWidth, 0, halfWidth, nheight);
+			if(state.split == false) {
+				glViewport(0, 0, nwidth, nheight);
+				glScissor(0, 0, nwidth, nheight);
+			}
+			else {
+				glViewport( 0, 0, halfWidth, nheight );
+				glScissor(0, 0, halfWidth, nheight);
+			}
 		}
 
 		
@@ -536,63 +539,65 @@ int main() try
 		//glfwSwapBuffers( window );
 
 	//------------------------------------------------------------------------
-	//the second screen
+		if(state.split == true) {
+		//the second screen
 
-		// Check if window was resized.
-		//float fbwidth1, fbheight1;
-		//{
-		int nwidth1, nheight1;
-		glfwGetFramebufferSize( window, &nwidth1, &nheight1 );
+			// Check if window was resized.
+			//float fbwidth1, fbheight1;
+			//{
+			int nwidth1, nheight1;
+			glfwGetFramebufferSize( window, &nwidth1, &nheight1 );
 
-		//fbwidth1 = float(nwidth1);
-		//fbheight1 = float(nheight1);
+			//fbwidth1 = float(nwidth1);
+			//fbheight1 = float(nheight1);
 
-		if( 0 == nwidth1 || 0 == nheight1 )
-		{
-			// Window minimized? Pause until it is unminimized.
-			// This is a bit of a hack.
-			do
+			if( 0 == nwidth1 || 0 == nheight1 )
 			{
-				glfwWaitEvents();
-				glfwGetFramebufferSize( window, &nwidth1, &nheight1 );
-			} while( 0 == nwidth1 || 0 == nheight1 );
-		}
+				// Window minimized? Pause until it is unminimized.
+				// This is a bit of a hack.
+				do
+				{
+					glfwWaitEvents();
+					glfwGetFramebufferSize( window, &nwidth1, &nheight1 );
+				} while( 0 == nwidth1 || 0 == nheight1 );
+			}
+			
+			int halfWidth1 = nwidth1 / 2;
+
+			glViewport( halfWidth1, 0, halfWidth1, nheight1 );
+			glScissor(halfWidth1, 0, halfWidth1, nheight1);
+
+			// Draw scene
+			OGL_CHECKPOINT_DEBUG();
+
+			//TODO: draw frame
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		int halfWidth1 = nwidth1 / 2;
+			// Draw the map
+			mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
 
-		glViewport( halfWidth1, 0, halfWidth1, nheight1 );
-		glScissor(halfWidth1, 0, halfWidth1, nheight1);
+			// Draw the first launchpad
+			mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		// Draw scene
-		OGL_CHECKPOINT_DEBUG();
+			// Draw the second launchpad
+			mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
-		//TODO: draw frame
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-		// Draw the map
-		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
+			// Draw first ship
+			mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
 
-		// Draw the first launchpad
-		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+			// Draw second ship
+			//mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
 
-		// Draw the second launchpad
-		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+			glBindVertexArray(0);
+			//glBindVertexArray(1);
 
-		// Draw first ship
-		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+			glUseProgram(0);
+			//glUseProgram(1);
 
-		// Draw second ship
-		//mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+			//ENDOF TODO
 
-		glBindVertexArray(0);
-		//glBindVertexArray(1);
-
-		glUseProgram(0);
-		//glUseProgram(1);
-
-		//ENDOF TODO
-
-		OGL_CHECKPOINT_DEBUG();
+			OGL_CHECKPOINT_DEBUG();
+		}
 
 		// Display results
 		glfwSwapBuffers( window );
@@ -744,6 +749,11 @@ namespace
 				state->spaceshipCurve = 0.f;
 				state->curve = 0.005f;
 				state->acceleration = 0.1f;
+			}
+
+			//v toggles split screen mode 
+			if(GLFW_KEY_V == aKey && GLFW_PRESS == aAction){
+				state->split = !state->split;
 			}
 		}
 	}
