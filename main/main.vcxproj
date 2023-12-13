@@ -101,7 +101,11 @@
     <ClInclude Include="defaults.hpp" />
     <ClInclude Include="loadcustom.hpp" />
     <ClInclude Include="loadobj.hpp" />
+    <ClInclude Include="main.hpp" />
+    <ClInclude Include="mesh_renderer.hpp" />
     <ClInclude Include="simple_mesh.hpp" />
+    <ClInclude Include="spaceship.hpp" />
+    <ClInclude Include="sprites.hpp" />
     <ClInclude Include="texture.hpp" />
   </ItemGroup>
   <ItemGroup>
