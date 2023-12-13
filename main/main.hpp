@@ -65,6 +65,9 @@ namespace
 		// Slow lift-off
 		float acceleration = 0.1f;
 		float curve = 0.f;
+
+		bool split;
+		int mode;
 	};
 
 	void glfw_callback_error_(int, char const*);

@@ -90,6 +90,9 @@ int main() try
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
+
+	glEnable(GL_SCISSOR_TEST);
+
 	//endofTODO
 
 	OGL_CHECKPOINT_ALWAYS();
@@ -225,6 +228,17 @@ int main() try
 				} while( 0 == nwidth || 0 == nheight );
 			}
 
+			int halfWidth = nwidth / 2;
+
+			if (state.split == false) {
+				glViewport(0, 0, nwidth, nheight);
+				glScissor(0, 0, nwidth, nheight);
+			}
+			else {
+				glViewport(0, 0, halfWidth, nheight);
+				glScissor(0, 0, halfWidth, nheight);
+			}
+
 			glViewport( 0, 0, nwidth, nheight );
 		}
 
@@ -273,44 +287,102 @@ int main() try
 		Mat44f Ry = make_rotation_y(state.camControl.phi);
 		Mat44f T = kIdentity44f;
 
-		//camera movement vector is added to current movement
-		if (state.camControl.actionMoveForward)
+		if (state.mode == 0)
 		{
-			state.camControl.movementVec.x -= kMovementPerSecond_* dt * sin(state.camControl.phi);
-			state.camControl.movementVec.z += kMovementPerSecond_* dt * cos(state.camControl.phi);
-			//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+			//camera movement vector is added to current movement
+			if (state.camControl.actionMoveForward)
+			{
+				state.camControl.movementVec.x -= kMovementPerSecond_ * dt * sin(state.camControl.phi);
+				state.camControl.movementVec.z += kMovementPerSecond_ * dt * cos(state.camControl.phi);
+				//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+			}
+			if (state.camControl.actionMoveBackward)
+			{
+				state.camControl.movementVec.x += kMovementPerSecond_ * dt * sin(state.camControl.phi);
+				state.camControl.movementVec.z -= kMovementPerSecond_ * dt * cos(state.camControl.phi);
+				//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
+			}
+			if (state.camControl.actionMoveLeft)
+			{
+				state.camControl.movementVec.x += kMovementPerSecond_ * dt * cos(state.camControl.phi);
+				state.camControl.movementVec.z += kMovementPerSecond_ * dt * sin(state.camControl.phi);
+				//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+			}
+			if (state.camControl.actionMoveRight)
+			{
+				state.camControl.movementVec.x -= kMovementPerSecond_ * dt * cos(state.camControl.phi);
+				state.camControl.movementVec.z -= kMovementPerSecond_ * dt * sin(state.camControl.phi);
+				//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
+			}
+			if (state.camControl.actionMoveUp)
+			{
+				state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
+			}
+			if (state.camControl.actionMoveDown)
+			{
+				state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
+			}
 		}
-	    if (state.camControl.actionMoveBackward)
-		{
-			state.camControl.movementVec.x += kMovementPerSecond_* dt * sin(state.camControl.phi);
-			state.camControl.movementVec.z -= kMovementPerSecond_* dt * cos(state.camControl.phi);
-			//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,0.f,1.f };
-		}
-	    if (state.camControl.actionMoveLeft)
-		{
-			state.camControl.movementVec.x += kMovementPerSecond_ * dt * cos(state.camControl.phi);
-			state.camControl.movementVec.z += kMovementPerSecond_ * dt * sin(state.camControl.phi);
-			//state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
-		}
-	    if (state.camControl.actionMoveRight)
-		{
-			state.camControl.movementVec.x -= kMovementPerSecond_ * dt * cos(state.camControl.phi);
-			state.camControl.movementVec.z -= kMovementPerSecond_ * dt * sin(state.camControl.phi);
-			//state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 1.f,0.f,0.f };
-		}
-	    if (state.camControl.actionMoveUp)
-		{
-			state.camControl.movementVec -= kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
-		}
-	    if (state.camControl.actionMoveDown)
-		{
-			state.camControl.movementVec += kMovementPerSecond_ * dt * Vec3f{ 0.f,1.f,0.f };
-		}
-
 
 		T = make_translation(state.camControl.movementVec);
 
 		Mat44f world2Camera = Rx * Ry * T;
+
+
+		//-------------------------------
+		//when mode = 1
+		//camera i fixed on the ground and follows it in flight 
+		if (state.mode == 1)
+		{
+
+			Mat44f defaultRotation = kIdentity44f;
+
+			world2Camera = make_rotation_x(90 * (3.1415926 / 180)) * defaultRotation;
+
+			Mat44f t3 = make_translation(Vec3f{ 0.f,0.f,45.f });
+
+			state.camControl.phi = kPi_ * 0;
+
+			float difZ = (-state.spaceshipOrigin);
+			float difY = (-state.spaceshipCurve);
+
+			float phiNew = -atan(difY / 5.f);
+			float thetaNew = atan(difZ / 5.f);
+
+			Mat44f Ry = make_rotation_y(phiNew);
+			Mat44f Rx = make_rotation_x(thetaNew);
+
+			world2Camera = Rx * Ry * t3;
+
+		}
+		// -------------------------------
+		// mode = 2
+		//camera mode: fixed distance and follows in flight 
+		if (state.mode == 2)
+		{
+
+			Mat44f defaultRotation = kIdentity44f;
+
+			world2Camera = defaultRotation * defaultRotation;
+
+			//Mat44f initialTranslation = make_translation(Vec3f{0.f, 0.5f, -45.f});
+			Mat44f t2 = make_translation(Vec3f{ 0.f,0.f,45.f });
+			Mat44f moveCam2Ship = make_translation(Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+
+			state.camControl.phi = kPi_ * 0;
+
+			Mat44f Rx = make_rotation_x(state.camControl.theta);
+			Mat44f Ry = make_rotation_y(state.camControl.phi);
+
+			//camControl.movementVec.y += (state.acceleration * dt);
+			//state.camControl.movementVec.x += (state.curve * dt);
+
+
+			world2Camera = Rx * Ry * t2 * moveCam2Ship;
+
+		}
+
+
 
 		//Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
 
@@ -366,9 +438,6 @@ int main() try
 			normalMatrix);
 
 		
-		
-		//renderSprites(projCameraWorld, prog3.programId());
-
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
 
@@ -378,6 +447,63 @@ int main() try
 		//ENDOF TODO
 
 		OGL_CHECKPOINT_DEBUG();
+
+		// Display results
+		//glfwSwapBuffers( window );
+
+	//------------------------------------------------------------------------
+	//different controls to toggle between the camera !  shift c
+		if (state.split == true)
+		{
+			//the second screen
+
+				// Check if window was resized.
+				//float fbwidth1, fbheight1;
+				//{
+			int nwidth1, nheight1;
+			glfwGetFramebufferSize(window, &nwidth1, &nheight1);
+
+			//fbwidth1 = float(nwidth1);
+			//fbheight1 = float(nheight1);
+
+			if (0 == nwidth1 || 0 == nheight1)
+			{
+				// Window minimized? Pause until it is unminimized.
+				// This is a bit of a hack.
+				do
+				{
+					glfwWaitEvents();
+					glfwGetFramebufferSize(window, &nwidth1, &nheight1);
+				} while (0 == nwidth1 || 0 == nheight1);
+			}
+
+			int halfWidth1 = nwidth1 / 2;
+
+			glViewport(halfWidth1, 0, halfWidth1, nheight1);
+			glScissor(halfWidth1, 0, halfWidth1, nheight1);
+
+			// Draw scene
+			OGL_CHECKPOINT_DEBUG();
+
+			//TODO: draw frame
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			// Draw second ship
+			//mesh_renderer(ship_two_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+
+		//renderSprites(projCameraWorld, prog3.programId());
+
+			glBindVertexArray(0);
+			//glBindVertexArray(1);
+
+			glUseProgram(0);
+			//glUseProgram(1);
+
+			//ENDOF TODO
+
+			OGL_CHECKPOINT_DEBUG();
+
+		}
 
 		// Display results
 		glfwSwapBuffers( window );
@@ -394,6 +520,8 @@ int main() try
 	
 	return 0;
 }
+
+
 catch( std::exception const& eErr )
 {
 	std::fprintf( stderr, "Top-level Exception (%s):\n", typeid(eErr).name() );
@@ -462,6 +590,19 @@ namespace
 					glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 				else
 					glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			}
+
+
+			//C to switch between camera modes 
+			if (GLFW_KEY_C == aKey && GLFW_PRESS == aAction)
+			{
+				//switch between 3 modes
+				state->mode += 1;
+				//when it gets to the last mode, switch back to original camera 
+				if (state->mode == 3)
+				{
+					state->mode = 0;
+				}
 			}
 
 			// Camera controls if camera is active
@@ -534,6 +675,11 @@ namespace
 				state->spaceshipCurve = 0.f;
 				state->curve = 0.005f;
 				state->acceleration = 0.1f;
+			}
+
+			//v toggles split screen mode 
+			if (GLFW_KEY_V == aKey && GLFW_PRESS == aAction) {
+				state->split = !state->split;
 			}
 		}
 	}
