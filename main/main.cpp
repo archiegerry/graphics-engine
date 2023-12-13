@@ -173,7 +173,7 @@ int main() try
 	 // Move the ship
 	 for (size_t i = 0; i < shipVertexCount; i++)
 	 {
-		 ship.positions[i] = ship.positions[i] + Vec3f{ -20.f, -1.125f, -15.f };
+		 ship.positions[i] = ship.positions[i] + Vec3f{ 0.f, -1.125f, -50.f };
 	 }
 
 	 // Create VAO for the ship
