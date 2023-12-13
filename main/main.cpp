@@ -1,193 +1,4 @@
-#include <glad.h>
-#include <GLFW/glfw3.h>
-
-#include <typeinfo>
-#include <stdexcept>
-
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-
-#include "../support/error.hpp"
-#include "../support/program.hpp"
-#include "../support/checkpoint.hpp"
-#include "../support/debug_output.hpp"
-
-#include "../vmlib/vec4.hpp"
-#include "../vmlib/mat44.hpp"
-#include "../vmlib/mat33.hpp"
-
-#include "defaults.hpp"
-
-#include "cylinder.hpp"
-#include "cone.hpp"
-#include "loadobj.hpp"
-#include "simple_mesh.hpp"
-#include "loadcustom.hpp"
-
-#include "cube.hpp"
-#include "texture.hpp"
-
-#include "fontstash.h"
-
-namespace
-{
-	constexpr char const* kWindowTitle = "COMP3811 - CW2";
-
-	constexpr float kPi_ = 3.1415926f;
-
-	float kMovementPerSecond_ = 5.f; // units per second
-	float kMouseSensitivity_ = 0.01f; // radians per pixel
-	struct State_ //struct for camera control
-	{
-		ShaderProgram* prog;
-
-		struct CamCtrl_
-		{
-			bool cameraActive;
-			bool actionZoomIn, actionZoomOut;
-			bool actionZoomleft, actionZoomRight;
-			bool actionMoveForward, actionMoveBackward;
-			bool actionMoveLeft, actionMoveRight;
-			bool actionMoveUp, actionMoveDown;
-
-			float phi, theta;
-			float radius;
-			Vec3f movementVec;
-
-			float lastX, lastY;
-		} camControl;
-
-		// Spaceship stuff
-		bool moveUp = false;
-		float spaceshipOrigin = 0.f;
-		float spaceshipCurve = 0.f;
-		// Slow lift-off
-		float acceleration = 0.1f;
-		float curve = 0.f;
-	};
-
-	void glfw_callback_error_( int, char const* );
-	void glfw_callback_key_( GLFWwindow*, int, int, int, int );
-
-	void glfw_callback_motion_(GLFWwindow*, double, double); //function for mouse motion
-
-	struct GLFWCleanupHelper
-	{
-		~GLFWCleanupHelper();
-	};
-	struct GLFWWindowDeleter
-	{
-		~GLFWWindowDeleter();
-		GLFWwindow* window;
-	};
-}
-
-namespace
-{
-	// Mesh rendering
-	void mesh_renderer(
-		GLuint vao,
-		size_t vertexCount,
-		State_ const& state,
-		GLuint textureObjectId,
-		GLuint programID,
-		Mat44f projCameraWorld,
-		Mat33f normalMatrix
-	)
-	{
-		glUseProgram(programID);
-
-		// for camera
-		glUniformMatrix4fv(
-			0,
-			1, GL_TRUE,
-			projCameraWorld.v);
-
-		//for normals
-		glUniformMatrix3fv(
-			1,
-			1, GL_TRUE,
-			normalMatrix.v);
-
-		Vec3f lightDir = normalize(Vec3f{ 0.f, 1.f, -1.f });
-
-		glUniform3fv(2, 1, &lightDir.x);      // Ambient 
-		glUniform3f(3, 0.9f, 0.9f, 0.9f);	  // Diffusion
-		glUniform3f(4, 0.05f, 0.05f, 0.05f);  // Spectral
-
-		glBindVertexArray(vao);
-		if (textureObjectId != 0)
-		{	glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, textureObjectId);
-		}
-		else
-		{
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-
-		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-	}
-
-}
-
-namespace
-{ 
-	SimpleMeshData spaceship() {
-
-		Vec3f color = { 0.35f, 0.35f, 0.3f };
-
-		//rgb for pink : 255, 131, 188 (legs)
-		Vec3f pink = {1.f, 0.514f, 0.737f};
-		//rgb for pink1 : 204, 0, 103 (body)
-		Vec3f pink1 = {0.8f, 0.f, 0.404f};
-		//rgb for orange : 253, 130, 47 (base)
-		Vec3f orange = {0.992f, 0.510f, 0.184f};
-		//rgb for orange1 : 249, 75, 0 (cubes)
-		Vec3f orange1 = {0.976f, 0.294f, 0.f};
-
-		//Body
-		SimpleMeshData coneLeft = make_cone(false, size_t(64), pink1, make_translation({0.f, 2.5f, 0.f})); 
-		SimpleMeshData coneRight = make_cone(false, size_t(64), pink1, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(180))); 
-		SimpleMeshData body = concatenate(coneLeft, coneRight); 
-		
-		// Legs
-		SimpleMeshData legOne = make_cylinder(true, size_t(64), pink, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimOne = concatenate(body, legOne);
-		SimpleMeshData legTwo = make_cylinder(true, size_t(64), pink, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_z(angleToRadians(-135)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimTwo = concatenate(interimOne, legTwo); 
-		SimpleMeshData legThree = make_cylinder(true, size_t(64), pink, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimThree = concatenate(interimTwo, legThree);
-		SimpleMeshData legFour = make_cylinder(true, size_t(64), pink, make_translation({ 0.f, 2.5f, 0.f }) * make_rotation_y(angleToRadians(-90)) * make_rotation_z(angleToRadians(-45)) * make_scaling(2.f, 0.1f, 0.1f));
-		SimpleMeshData interimFour = concatenate(interimThree, legFour);
-		
-		// Feet
-		SimpleMeshData footOne = make_cube(orange1, make_translation({-1.3f, 1.f, 0.0f}) * make_scaling(0.4f, 0.4f, 0.4f));
-		SimpleMeshData interimFive = concatenate(interimFour, footOne);
-		SimpleMeshData footTwo = make_cube(orange1, make_translation({ 1.3f, 1.f, 0.0f }) * make_scaling(0.4f, 0.4f, 0.4f));
-		SimpleMeshData interimSix = concatenate(interimFive, footTwo);
-		SimpleMeshData footThree = make_cube(orange1, make_translation({ 0.f, 1.f, -1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
-		SimpleMeshData interimSeven = concatenate(interimSix, footThree);
-		SimpleMeshData footFour = make_cube(orange1, make_translation({ 0.0f, 1.f, 1.3f }) * make_scaling(0.4f, 0.4f, 0.4f));
-		SimpleMeshData interimEight = concatenate(interimSeven, footFour);
-
-		// Middle bars and other shiz
-		SimpleMeshData connectorOne = make_cylinder(false, size_t(64), orange, make_translation({ -0.f, 1.f, 1.2f }) * make_rotation_y(angleToRadians(90)) * make_scaling(2.4f, 0.1f, 0.1f));
-		SimpleMeshData interimNine = concatenate(interimEight, connectorOne);
-		SimpleMeshData connectorTwo = make_cylinder(false, size_t(64), orange, make_translation({ -1.2f, 1.f, 0.f }) * make_scaling(2.4f, 0.1f, 0.1f));
-		SimpleMeshData spaceship = concatenate(interimNine, connectorTwo);
-//		SimpleMeshData engine = make_cone(true, size_t(64), Vec3f{ 1.f, 1.f, 1.f }, make_translation({ 0.f, 0.55f, 0.f }) * make_rotation_z(angleToRadians(90)) * make_scaling(0.5f, 0.5f, 0.5f));
-	//	SimpleMeshData spaceship = concatenate(interimTen, engine);
-
-		// Ickle lickle space ship (so cute!)
-		for (int vertices = 0; vertices < spaceship.positions.size(); vertices++) {
-			spaceship.positions[vertices] *= 0.18;
-		}
-
-		return spaceship;
-	}
-}
-
+#include "spaceship.hpp"
 
 int main() try
 {
@@ -200,7 +11,7 @@ int main() try
 	}
 
 	// Ensure that we call glfwTerminate() at the end of the program.
-	GLFWCleanupHelper cleanupHelper;
+	GLFWCleanupHelper cleanupHelper; 
 
 	// Configure GLFW and create window
 	glfwSetErrorCallback( &glfw_callback_error_ );
@@ -304,11 +115,18 @@ int main() try
 	auto last = Clock::now();
 	float angle = 0.f;
 
+	//-------------------------------------------------------------------
+
+
+	// Load the map OBJ file
 	auto parlahti = load_wavefront_obj("assets/parlahti.obj");
+	
 	GLuint vao = create_vao(parlahti);
 	std::size_t vertexCount = parlahti.positions.size();
 
+
 	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
+	GLuint particles = load_texture_2d("assets/white.png");
 
 	//----------------------------------------------------------------
 	//load shader program for launchpad
@@ -344,7 +162,6 @@ int main() try
 	 // SHIP CREATION SECTION
 	//-------------------------------------------------------------------
 
-
 	 // Create the spaceship
 	 auto ship = spaceship();
 	 size_t shipVertexCount = ship.positions.size();
@@ -360,6 +177,9 @@ int main() try
 	 GLuint ship_one_vao = create_vao(ship);
 
 	 Mat44f spaceshipModel2World;
+
+	 //-------------------------------------------------------------------
+	 // SHIP CREATION SECTION END
 
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
