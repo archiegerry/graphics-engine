@@ -126,7 +126,6 @@ int main() try
 
 
 	GLuint textures = load_texture_2d("assets/L4343A-4k.jpeg");
-	GLuint particles = load_texture_2d("assets/white.png");
 
 	//----------------------------------------------------------------
 	//load shader program for launchpad
@@ -181,6 +180,20 @@ int main() try
 	 //-------------------------------------------------------------------
 	 // SHIP CREATION SECTION END
 
+	//-------------------------------------------------------------------
+	// POINT SPRITE CREATION
+	// loadTexture();
+	 //setupSpriteBuffers();
+	 ShaderProgram prog3({
+			 { GL_VERTEX_SHADER, "assets/points.vert" },
+			 { GL_FRAGMENT_SHADER, "assets/points.frag" }
+	 });
+	 setupSpriteBuffers();
+
+	// POINT SPRITE CREATION END
+	//-------------------------------------------------------------------
+
+
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -189,6 +202,8 @@ int main() try
 	{
 		// Let GLFW process events
 		glfwPollEvents();
+
+		//generateSprites(Vec3f{ 1.f, 1.f, 1.f }, 10);
 		
 		// Check if window was resized.
 		float fbwidth, fbheight;
@@ -310,6 +325,9 @@ int main() try
 
 		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
 
+		//updateSprites(dt); 
+		//updateSpritePositions(sprites); 
+
 		//ENDOF TODO
 
 		// Draw scene
@@ -317,19 +335,35 @@ int main() try
 
 		//TODO: draw frame
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Sprite renderer 
+		//glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+		//glClear(GL_COLOR_BUFFER_BIT); 
+		glUseProgram(prog3.programId()); 
+		glEnable(GL_PROGRAM_POINT_SIZE); 
+		glUniformMatrix4fv( 
+			0,
+			1, GL_TRUE,
+			projCameraWorld.v);
+		// Bind VAO and draw 
+		glBindVertexArray(VAO); 
+		glDrawArrays(GL_POINTS, 0, 1); // Draw one point  
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount,  state, textures, prog.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(vao, vertexCount, textures, prog.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the first launchpad
-		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_1, launchVertexCount, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		// Draw the second launchpad
-		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, normalMatrix);
+		mesh_renderer(launch_vao_2, launchVertexCount, 0, prog2.programId(), projCameraWorld, normalMatrix);
 
 		// Draw ship
-		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
+		mesh_renderer(ship_one_vao, shipVertexCount, 0, prog2.programId(), spaceshipModel2World, normalMatrix);
 
+		
+		
+		//renderSprites(projCameraWorld, prog3.programId());
 
 		glBindVertexArray(0);
 		//glBindVertexArray(1);
@@ -343,10 +377,16 @@ int main() try
 
 		// Display results
 		glfwSwapBuffers( window );
+		glfwPollEvents();
 	}
 
 	// Cleanup.
 	//TODO: additional cleanup
+	glDeleteVertexArrays(1, &VAO); 
+	glDeleteBuffers(1, &VBO); 
+	glDeleteProgram(prog3.programId()); 
+
+	glfwTerminate();
 	
 	return 0;
 }

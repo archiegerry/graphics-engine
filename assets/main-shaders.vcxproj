@@ -52,6 +52,8 @@
     <None Include="default.vert" />
     <None Include="launch.frag" />
     <None Include="launch.vert" />
+    <None Include="points.frag" />
+    <None Include="points.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

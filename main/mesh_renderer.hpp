@@ -1,12 +1,11 @@
 #include "main.hpp"
 
 // Mesh rendering
-inline void mesh_renderer( GLuint vao, size_t vertexCount,   
-			State_ const& state, 
-			GLuint textureObjectId,  
-			GLuint programID,  
-			Mat44f projCameraWorld, 
-			Mat33f normalMatrix 
+inline void mesh_renderer( GLuint vao, size_t vertexCount, 
+							GLuint textureObjectId,  
+							GLuint programID,  
+							Mat44f projCameraWorld, 
+							Mat33f normalMatrix 
 ) {
 	glUseProgram(programID);
 

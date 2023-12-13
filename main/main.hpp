@@ -29,7 +29,6 @@
 #include "texture.hpp"
 
 #include "fontstash.h"
-#include "sprites.hpp"
 
 namespace
 {

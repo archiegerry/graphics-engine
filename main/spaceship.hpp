@@ -1,4 +1,77 @@
 #include "mesh_renderer.hpp"
+#include <gl/GL.h>
+
+struct Sprite {
+	Vec3f position;
+	Vec3f velocity;
+	float lifespan;
+};
+
+std::vector<Sprite> sprites;
+GLuint texture, VBO, VAO;
+int maxSprites = 6000;
+
+
+void loadTexture() { 
+	texture = load_texture_2d("assets/white.png"); 
+}
+
+void setupSpriteBuffers() {
+	// Create VAO and VBO
+	
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	// Bind VAO
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	float vertices[] = { 0.0f, 0.0f, 0.0f }; // Single point at the center 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// Configure vertex attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// Unbind VBO and VAO 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
+}
+
+void updateSpritePositions(const std::vector<Sprite>& sprites ) {
+
+}
+
+void generateSprites(Vec3f spaceshipPosition, int spriteAmount) {
+	for (int i = 0; i < spriteAmount; i++)
+	{
+		Sprite sprite;
+		// Position
+		sprite.position = spaceshipPosition;
+		// Direction
+		sprite.velocity = Vec3f{ 0.2f, 0.1f, 0.3f };
+		// How long it lasts
+		sprite.lifespan = 10.f;
+		sprites.emplace_back(sprite);
+
+	}
+}
+
+void updateSprites( float dt ) {
+	// Update position and TTL
+	for (auto& sprite : sprites) {
+		sprite.position += sprite.velocity * dt;
+		sprite.lifespan -= dt;
+	}
+
+	// Remove dead sprites
+	sprites.erase(std::remove_if(sprites.begin(), sprites.end(),
+		[](const Sprite& s) { return s.lifespan <= 0; }), sprites.end());
+}
+
+void renderSprites( Mat44f projCameraWorld, GLuint programID ) {
+
+	
+}
 
 inline SimpleMeshData spaceship() {
 
@@ -52,4 +125,4 @@ inline SimpleMeshData spaceship() {
 		}
 
 		return spaceship;
-	}
+}
