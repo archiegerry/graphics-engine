@@ -349,35 +349,25 @@ int main() try
 		//when mode = 1
 		//camera i fixed on the ground and follows it in flight 
 		if (state.mode == 1) {
-			Mat44f defaultRotation = kIdentity44f;
+			// Position the camera on the ground
+			Vec3f cameraPos = { 5.f, 0.f, -50.f };
 
-			// Rotate 90 degrees in x-axis
-			Mat44f rotationX = make_rotation_x(45.f * (kPi_ / 180.f));
+			// Calculate direction vector from camera to spaceship
+			Vec3f direction = normalize((Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -50.f }) - cameraPos); 
 
-			// Apply the rotation and translation
-			world2Camera = rotationX * defaultRotation;
+			// Calculate yaw (rotation around Y-axis)
+			float yaw = atan2(direction.x, -direction.z); 
 
-			Mat44f t3 = make_translation(Vec3f{ -5.f, 0.f, 45.f });
+			// Calculate pitch (rotation around X-axis)
+			float pitch = atan2(direction.y, sqrt(direction.x * direction.x + direction.z * direction.z)); 
 
-			state.camControl.phi = kPi_ * 0.f;
+			// Construct rotation matrices
+			Mat44f rotationMatrix = make_rotation_x(-pitch) * make_rotation_y(yaw); 
 
-			float difZ = (-state.spaceshipCurve);
-			float difY = (-state.spaceshipOrigin);
-
-			// Calculate rotations`
-			float phiNew = atan(difY / 5.f);
-			float thetaNew = atan(difZ / 5.f);
-
-			Mat44f Ry = make_rotation_y(thetaNew);
-			Mat44f Rx = make_rotation_x(-phiNew);
-
-			// Combine rotations and apply translation
-			Mat44f combinedRotation = Rx * Ry;
-
-			// Update the camera transformation
-			world2Camera = combinedRotation * t3 * world2Camera;
+			// Update the camera's world-to-view matrix
+			world2Camera = rotationMatrix * make_translation(-cameraPos);
 		}
-
+		
 		// -------------------------------
 		// mode = 2
 		//camera mode: fixed distance and follows in flight 
