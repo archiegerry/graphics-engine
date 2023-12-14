@@ -278,10 +278,10 @@ int main() try
 			Mat44f originToTranslation = make_translation(Vec3f{ 0.f, -0.975f, -50.f });
 			Mat44f translationMatrix = make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });
 			spaceship2World = translationMatrix * originToTranslation * xRotationMatrix * translationToOrigin * model2World;
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.208f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -0.208f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -50.208f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -49.792f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.225f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -0.225f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -50.225f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -49.75f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
 		}
 
 
@@ -350,59 +350,38 @@ int main() try
 		//camera i fixed on the ground and follows it in flight 
 		if (state.mode == 1)
 		{
-
 			Mat44f defaultRotation = kIdentity44f;
 
-			world2Camera = make_rotation_x(90 * (3.1415926 / 180)) * defaultRotation;
+			world2Camera = make_rotation_x(90 * (kPi_ / 180)) * defaultRotation;
 
 			Mat44f t3 = make_translation(Vec3f{ 0.f,0.f,45.f });
 
 			state.camControl.phi = kPi_ * 0;
 
+
 			float difZ = (-state.spaceshipOrigin);
-			float difY = (-state.spaceshipCurve);
+			float difY = (state.spaceshipCurve);
 
 			float phiNew = -atan(difY / 5.f);
-			float thetaNew = atan(difZ / 5.f);
+			float thetaNew = -atan(difZ / 5.f);
 
 			Mat44f Ry = make_rotation_y(phiNew);
 			Mat44f Rx = make_rotation_x(thetaNew);
 
-			world2Camera = xRotationMatrix * Ry * t3;
-
+			if (state.camControl.phi > (kPi_ / 2) - 0.01f) {
+				world2Camera = Rx * Ry * t3 * make_rotation_y(kPi_);
+			}
+			else {
+				world2Camera = Rx * Ry * t3;
+			}
 		}
 		// -------------------------------
 		// mode = 2
 		//camera mode: fixed distance and follows in flight 
 		if (state.mode == 2)
 		{
-			Vec3f ship3Vf = (Vec3f{ 0.f,0.f,45.f })+Vec3f{ spaceshipModel2World(0,3), -spaceshipModel2World(1,3), spaceshipModel2World(2,3) };
-			
 			Vec3f ship3vf2 = Vec3f{ 0.f,0.f,45.f } + Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve };
-
-
-
-			//Mat44f defaultRotation = kIdentity44f;
-
-			//world2Camera = defaultRotation * defaultRotation;
-
-			//Mat44f initialTranslation = make_translation(Vec3f{0.f, 0.5f, -45.f});
-			//Mat44f t2 = make_translation(Vec3f{ 0.f,0.f,45.f });
-
-			//Mat44f moveCam2Ship = make_translation(ship3Vf);//make_translation(Vec3f{sp(0,3), -sp(1,3), sp(2,3)});
-			//make_translation(Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-
-			//state.camControl.phi = kPi_ * 0;
-
-			//Mat44f Rx = make_rotation_x(state.camControl.theta);
-			//Mat44f Ry = make_rotation_y(state.camControl.phi);
-
-			//camControl.movementVec.y += (state.acceleration * dt);
-			//state.camControl.movementVec.x += (state.curve * dt);
-
-
 			world2Camera = Rx * Ry * make_translation(ship3vf2);
-
 		}
 
 		projCameraWorld = projection * (world2Camera * model2World);
