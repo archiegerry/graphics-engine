@@ -348,33 +348,36 @@ int main() try
 		//-------------------------------
 		//when mode = 1
 		//camera i fixed on the ground and follows it in flight 
-		if (state.mode == 1)
-		{
+		if (state.mode == 1) {
 			Mat44f defaultRotation = kIdentity44f;
 
-			world2Camera = make_rotation_x(90 * (kPi_ / 180)) * defaultRotation;
+			// Rotate 90 degrees in x-axis
+			Mat44f rotationX = make_rotation_x(45.f * (kPi_ / 180.f));
 
-			Mat44f t3 = make_translation(Vec3f{ 0.f,0.f,45.f });
+			// Apply the rotation and translation
+			world2Camera = rotationX * defaultRotation;
 
-			state.camControl.phi = kPi_ * 0;
+			Mat44f t3 = make_translation(Vec3f{ -5.f, 0.f, 45.f });
 
+			state.camControl.phi = kPi_ * 0.f;
 
-			float difZ = (-state.spaceshipOrigin);
-			float difY = (state.spaceshipCurve);
+			float difZ = (-state.spaceshipCurve);
+			float difY = (-state.spaceshipOrigin);
 
-			float phiNew = -atan(difY / 5.f);
-			float thetaNew = -atan(difZ / 5.f);
+			// Calculate rotations`
+			float phiNew = atan(difY / 5.f);
+			float thetaNew = atan(difZ / 5.f);
 
-			Mat44f Ry = make_rotation_y(phiNew);
-			Mat44f Rx = make_rotation_x(thetaNew);
+			Mat44f Ry = make_rotation_y(thetaNew);
+			Mat44f Rx = make_rotation_x(-phiNew);
 
-			if (state.camControl.phi > (kPi_ / 2) - 0.01f) {
-				world2Camera = Rx * Ry * t3 * make_rotation_y(kPi_);
-			}
-			else {
-				world2Camera = Rx * Ry * t3;
-			}
+			// Combine rotations and apply translation
+			Mat44f combinedRotation = Rx * Ry;
+
+			// Update the camera transformation
+			world2Camera = combinedRotation * t3 * world2Camera;
 		}
+
 		// -------------------------------
 		// mode = 2
 		//camera mode: fixed distance and follows in flight 
