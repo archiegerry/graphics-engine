@@ -199,6 +199,22 @@ int main() try
 	//-------------------------------------------------------------------
 
 
+	 //queries to measure performance
+	 GLuint renderTime, time2, time4, time5;
+	 glGenQueries(1, &renderTime);
+	 glGenQueries(1, &time2);
+	 glGenQueries(1, &time4);
+	 glGenQueries(1, &time5);
+
+	 //get the timestamps
+	 GLuint64 renderTime_stamp, time2_stamp, time4_stamp, time5_stamp;
+
+	 //track the clock time
+	 auto ftf = std::chrono::high_resolution_clock::now();
+
+
+
+
 	// Other initialization & loading
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -207,8 +223,6 @@ int main() try
 	{
 		// Let GLFW process events
 		glfwPollEvents();
-
-		//generateSprites(Vec3f{ 1.f, 1.f, 1.f }, 10);
 		
 		// Check if window was resized.
 		float fbwidth, fbheight;
@@ -242,6 +256,12 @@ int main() try
 			}
 
 		}
+
+
+		//start time for task 2 render time
+		glBeginQuery(GL_TIME_ELAPSED, time2_stamp);
+
+
 
 		//TODO: update state
 		auto const now = Clock::now();
@@ -401,22 +421,56 @@ int main() try
 
 		renderSprites(projCameraWorld, prog3.programId());
 
-	
+		//start of full rendering time
+		glBeginQuery(GL_TIME_ELAPSED, renderTime_stamp);
 		// Draw the map
 		mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceship2World,
 			normalMatrix);
+
+		//end of render for task 2
+		glEndQuery(GL_TIME_ELAPSED);
+		glGetQueryObjectui64v(time2, GL_QUERY_RESULT, &time2_stamp);
+		float time2float = static_cast<float>(time2_stamp);
+		std::printf("\n Task 2 - time taken to render task 2: %.9f ns", time2float);
+
+		
+        //start of task 4
+        glBeginQuery(GL_TIME_ELAPSED, time4_stamp);
 
 		// Draw the first launchpad
 		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
 			normalMatrix);
 
+
 		// Draw the second launchpad
 		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
 			normalMatrix);
 
+		//end of render for task 4
+		glEndQuery(GL_TIME_ELAPSED);
+		glGetQueryObjectui64v(time4, GL_QUERY_RESULT, &time4_stamp);
+		float time4float = static_cast<float>(time4_stamp);
+		std::printf("\n Task 4 - time taken to render task 4: %.9f ns", time4float);
+
+		//start of task 5
+		glBeginQuery(GL_TIME_ELAPSED, time5_stamp);
+
 		// Draw ship
 		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceship2World,
 			normalMatrix);
+
+		//---------------------------SWAP TASK 5 AND FULL RENDER TIME?????????------------------------------------------
+		//end of full render time
+		glEndQuery(GL_TIME_ELAPSED);
+		glGetQueryObjectui64v(renderTime, GL_QUERY_RESULT, &renderTime_stamp);
+		float renderTimefloat = static_cast<float>(renderTime_stamp);
+		std::printf("\n Time taken for full render: %.9f ns", renderTimefloat);
+
+		//end of render for task 5
+		glEndQuery(GL_TIME_ELAPSED);
+		glGetQueryObjectui64v(time4, GL_QUERY_RESULT, &time5_stamp);
+		float time5float = static_cast<float>(time5_stamp);
+		std::printf("\n Task 5 - time taken to render task 5: %.9f ns", time5float);
 
 		
 		glBindVertexArray(0);
@@ -502,6 +556,9 @@ int main() try
 			OGL_CHECKPOINT_DEBUG();
 
 		}
+
+		//reset the time for frame to frame calculation
+		ftf = std::chrono::high_resolution_clock::now();
 
 		// Display results
 		glfwSwapBuffers( window );
