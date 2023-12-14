@@ -328,7 +328,16 @@ int main() try
 
 		Mat44f world2Camera = Rx * Ry * T;
 
+		Mat44f projection = make_perspective_projection(
+			60 * kPi_ / 180.f,			//FOV:60 converted to radians
+			fbwidth / float(fbheight), //aspect ratio
+			0.1f,					  //near plane
+			100.f					 //far plane
+		);
 
+		Mat44f projCameraWorld = projection * (world2Camera * model2World);
+
+		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
 		//-------------------------------
 		//when mode = 1
 		//camera i fixed on the ground and follows it in flight 
@@ -360,14 +369,16 @@ int main() try
 		//camera mode: fixed distance and follows in flight 
 		if (state.mode == 2)
 		{
-
+			Mat44f sp = spaceship2World;
 			Mat44f defaultRotation = kIdentity44f;
 
 			world2Camera = defaultRotation * defaultRotation;
 
 			//Mat44f initialTranslation = make_translation(Vec3f{0.f, 0.5f, -45.f});
 			Mat44f t2 = make_translation(Vec3f{ 0.f,0.f,45.f });
-			Mat44f moveCam2Ship = make_translation(Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+
+			Mat44f moveCam2Ship =  make_translation(Vec3f{-sp(0,3), -sp(1,3), -sp(2,3)});
+			//make_translation(Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
 
 			state.camControl.phi = kPi_ * 0;
 
@@ -382,20 +393,13 @@ int main() try
 
 		}
 
+		projCameraWorld = projection * (world2Camera * model2World);
 
+		spaceshipModel2World = projection * (world2Camera * spaceship2World);
 
 		//Mat44f world2Camera = make_translation({ 0.f, 0.f, -10.f });
 
-		Mat44f projection = make_perspective_projection(
-			60 * kPi_ / 180.f,			//FOV:60 converted to radians
-			fbwidth / float(fbheight), //aspect ratio
-			0.1f,					  //near plane
-			100.f					 //far plane
-		);
-
-		Mat44f projCameraWorld = projection * (world2Camera * model2World);
-
-		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
+		
 
 		//updateSprites(dt); 
 		//updateSpritePositions(sprites); 
