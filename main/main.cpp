@@ -349,22 +349,22 @@ int main() try
 		//when mode = 1
 		//camera i fixed on the ground and follows it in flight 
 		if (state.mode == 1) {
-			// Position the camera on the ground
+			// Camera on the ground
 			Vec3f cameraPos = { 5.f, 0.f, -50.f };
 
-			// Calculate direction vector from camera to spaceship
+			// Direction vector 
 			Vec3f direction = normalize((Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -50.f }) - cameraPos); 
 
-			// Calculate yaw (rotation around Y-axis)
+			// Yaw
 			float yaw = atan2(direction.x, -direction.z); 
 
-			// Calculate pitch (rotation around X-axis)
+			// Pitch
 			float pitch = atan2(direction.y, sqrt(direction.x * direction.x + direction.z * direction.z)); 
 
-			// Construct rotation matrices
+			// Rotate
 			Mat44f rotationMatrix = make_rotation_x(-pitch) * make_rotation_y(yaw); 
 
-			// Update the camera's world-to-view matrix
+			
 			world2Camera = rotationMatrix * make_translation(-cameraPos);
 		}
 		
