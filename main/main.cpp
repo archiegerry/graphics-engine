@@ -490,6 +490,8 @@ int main() try
 			//TODO: draw frame
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			renderSprites(projCameraWorld, prog3.programId());
+
 			// Draw the map
 			mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceship2World,
 				normalMatrix);
@@ -505,6 +507,9 @@ int main() try
 			// Draw ship
 			mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceship2World,
 				normalMatrix);
+
+			updateSprites(dt); 
+			updateSpritePositions(sprites); 
 
 
 			glBindVertexArray(0);
