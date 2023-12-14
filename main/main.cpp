@@ -420,23 +420,28 @@ int main() try
 		//TODO: draw frame
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		Mat44f spaceshipPosition = { 1.f, 0.f, 0.f, 0.f,
+									 0.f, 1.f, 0.f, state.spaceshipOrigin,
+									 0.f, 0.f, 1.f, state.spaceshipCurve,
+									 0.f, 0.f, 0.f, 1.f	};
+
 		renderSprites(projCameraWorld, prog3.programId());
 
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceship2World,
+		mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceshipPosition,
 			normalMatrix);
 
 		// Draw the first launchpad
-		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceshipPosition,
 			normalMatrix);
 
 		// Draw the second launchpad
-		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceshipPosition,
 			normalMatrix);
 
 		// Draw ship
-		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceship2World,
+		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceshipPosition,
 			normalMatrix);
 
 		
