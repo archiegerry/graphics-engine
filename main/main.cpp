@@ -254,6 +254,7 @@ int main() try
 
 		Mat44f model2World = make_rotation_y(0);
 		Mat44f spaceship2World = model2World;
+		Mat44f xRotationMatrix = make_rotation_x(0);
 		if (state.moveUp == true) {
 			// Acceleration parameters
 			state.spaceshipOrigin += (state.acceleration * dt);
@@ -271,16 +272,16 @@ int main() try
 			float angleX = std::atan2(state.spaceshipCurve, state.spaceshipOrigin);
 
 			// Must translate the shape back to starting point to apply transformations
-			Mat44f translationToOrigin = make_translation(Vec3f{ 20.f, 1.125f, 15.f });
-			Mat44f xRotationMatrix = make_rotation_x(angleX);
+			Mat44f translationToOrigin = make_translation(Vec3f{ -0.f, 0.975f, 50.f });
+			xRotationMatrix = make_rotation_x(angleX);
 			// Then must be translated back to launchpad
-			Mat44f originToTranslation = make_translation(Vec3f{ -20.f, -1.125f, -15.f });
+			Mat44f originToTranslation = make_translation(Vec3f{ 0.f, -0.975f, -50.f });
 			Mat44f translationMatrix = make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });
 			spaceship2World = translationMatrix * originToTranslation * xRotationMatrix * translationToOrigin * model2World;
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -20.208f, -1.f, -15.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -19.792f, -1.f, -15.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -20.f, -1.f, -15.208f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -20.f, -1.f, -14.792f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.208f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -0.208f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -50.208f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -49.792f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
 		}
 
 
