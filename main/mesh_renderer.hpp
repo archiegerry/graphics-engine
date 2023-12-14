@@ -6,7 +6,7 @@ inline void mesh_renderer( GLuint vao, size_t vertexCount,
 							GLuint programID,  
 							Mat44f projCameraWorld, 
 							Mat33f normalMatrix 
-) {
+) {     
 	glUseProgram(programID);
 
 	// for camera

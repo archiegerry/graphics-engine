@@ -13,20 +13,19 @@ int maxSprites = 6000;
 
 
 void loadTexture() { 
-	texture = load_texture_2d("assets/white.png"); 
+	texture = load_texture_2d("assets/fire.jpg"); 
+	glGetError();
 }
 
 void setupSpriteBuffers() {
 	// Create VAO and VBO
-	
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
 	// Bind VAO
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	float vertices[] = { 0.0f, 0.0f, 0.0f }; // Single point at the center 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, maxSprites * 3 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
 	// Configure vertex attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -37,20 +36,48 @@ void setupSpriteBuffers() {
 	
 }
 
-void updateSpritePositions(const std::vector<Sprite>& sprites ) {
+Vec3f randomConicalDirection(Vec3f direction) {
+		using namespace std;
+		random_device rd;
+		mt19937 gen(rd());
+		uniform_real_distribution<> dis(0, 1); 
 
+		float theta = 2 * kPi_ * dis(gen);
+		float phi = acos(1 - dis(gen) * (1 - cos(45)));
+
+		Vec3f randomDirection;
+		randomDirection.x = sin(phi) * cos(theta);
+		randomDirection.y = sin(phi) * sin(theta);
+		randomDirection.z = cos(phi);
+
+		return randomDirection;
 }
 
-void generateSprites(Vec3f spaceshipPosition, int spriteAmount) {
+void updateSpritePositions(const std::vector<Sprite>& sprites ) {
+	std::vector<float> positions;
+	positions.reserve(sprites.size() * 3); // Each sprite has 3 float values for position
+
+	for (const auto& sprite : sprites) {
+		positions.push_back(sprite.position.x);
+		positions.push_back(sprite.position.y);
+		positions.push_back(sprite.position.z);
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_DYNAMIC_DRAW); 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void generateSprites(Vec3f spaceshipPosition, int spriteAmount, Vec3f direction) {
 	for (int i = 0; i < spriteAmount; i++)
 	{
 		Sprite sprite;
 		// Position
 		sprite.position = spaceshipPosition;
 		// Direction
-		sprite.velocity = Vec3f{ 0.2f, 0.1f, 0.3f };
+		sprite.velocity = randomConicalDirection(direction);
 		// How long it lasts
-		sprite.lifespan = 10.f;
+		sprite.lifespan = 0.5f;
 		sprites.emplace_back(sprite);
 
 	}
@@ -65,12 +92,31 @@ void updateSprites( float dt ) {
 
 	// Remove dead sprites
 	sprites.erase(std::remove_if(sprites.begin(), sprites.end(),
-		[](const Sprite& s) { return s.lifespan <= 0; }), sprites.end());
+		[](const Sprite& sprite) { return sprite.lifespan <= 0; }), sprites.end());
 }
 
-void renderSprites( Mat44f projCameraWorld, GLuint programID ) {
+void renderSprites(Mat44f project2World, GLuint shader) {
 
-	
+	// Sprite renderer 
+		//glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+		//glClear(GL_COLOR_BUFFER_BIT); 
+	glEnable(GL_BLEND); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE); 
+	glActiveTexture(GL_TEXTURE0); 
+	glBindTexture(GL_TEXTURE_2D, texture);  
+	glUseProgram(shader);
+	glEnable(GL_PROGRAM_POINT_SIZE);
+	glUniformMatrix4fv(
+		0,
+		1, GL_TRUE,
+		project2World.v);
+	glUniform1i(1, 0); 
+
+	// Bind VAO and draw 
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_POINTS, 0, sprites.size()); // Draw one point  
+	glBindVertexArray(0); 
+	glDisable(GL_BLEND);
 }
 
 inline SimpleMeshData spaceship() {

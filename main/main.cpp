@@ -188,8 +188,9 @@ int main() try
 			 { GL_VERTEX_SHADER, "assets/points.vert" },
 			 { GL_FRAGMENT_SHADER, "assets/points.frag" }
 	 });
+	 loadTexture();
 	 setupSpriteBuffers();
-
+	 
 	// POINT SPRITE CREATION END
 	//-------------------------------------------------------------------
 
@@ -249,7 +250,7 @@ int main() try
 			state.acceleration *= 1.0025;
 
 			// Curve once certain height is reached
-			if (state.spaceshipOrigin > 1.5f) {
+			if (state.spaceshipOrigin > 0.5f) {
 				state.spaceshipCurve += (0.05 * dt);
 				state.spaceshipCurve *= 1.005;
 			}
@@ -264,6 +265,10 @@ int main() try
 			Mat44f originToTranslation = make_translation(Vec3f{ -20.f, -1.125f, -15.f }); 
 			Mat44f translationMatrix = make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });  
 			spaceship2World = translationMatrix * originToTranslation * xRotationMatrix * translationToOrigin * model2World;
+			generateSprites(Vec3f{0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -20.208f, -1.f, -15.f  }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve }); 
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -19.792f, -1.f, -15.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve }); 
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -20.f, -1.f, -15.208f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve }); 
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -20.f, -1.f, -14.792f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
 		}
 
 
@@ -325,8 +330,8 @@ int main() try
 
 		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
 
-		//updateSprites(dt); 
-		//updateSpritePositions(sprites); 
+		updateSprites(dt); 
+		updateSpritePositions(sprites);  
 
 		//ENDOF TODO
 
@@ -336,18 +341,7 @@ int main() try
 		//TODO: draw frame
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Sprite renderer 
-		//glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
-		//glClear(GL_COLOR_BUFFER_BIT); 
-		glUseProgram(prog3.programId()); 
-		glEnable(GL_PROGRAM_POINT_SIZE); 
-		glUniformMatrix4fv( 
-			0,
-			1, GL_TRUE,
-			projCameraWorld.v);
-		// Bind VAO and draw 
-		glBindVertexArray(VAO); 
-		glDrawArrays(GL_POINTS, 0, 1); // Draw one point  
+		renderSprites(projCameraWorld, prog3.programId());
 	
 		// Draw the map
 		mesh_renderer(vao, vertexCount, textures, prog.programId(), projCameraWorld, normalMatrix);

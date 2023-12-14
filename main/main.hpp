@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <random>
 
 #include "../support/error.hpp"
 #include "../support/program.hpp"
