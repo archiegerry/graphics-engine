@@ -252,9 +252,10 @@ int main() try
 			angle -= 2.f * kPi_;
 
 		Mat44f model2World = make_rotation_y(0);
-
+		Mat44f xRotationMatrix;
+		Mat44f spaceship2World;
 		// Animation acceleration 
-		Mat44f spaceship2World = model2World; 
+		spaceship2World = model2World; 
 		if (state.moveUp == true) { 
 			// Acceleration parameters
 			state.spaceshipOrigin += (state.acceleration * dt); 
@@ -272,10 +273,10 @@ int main() try
 			float angleX = std::atan2(state.spaceshipCurve, state.spaceshipOrigin); 
 
 			// Must translate the shape back to starting point to apply transformations
-			Mat44f translationToOrigin = make_translation(Vec3f{ 20.f, 1.125f, 15.f }); 
-			Mat44f xRotationMatrix = make_rotation_x(angleX); 
+			Mat44f translationToOrigin = make_translation(Vec3f{ 0.f, -1.125f, -50.f });
 			// Then must be translated back to launchpad
-			Mat44f originToTranslation = make_translation(Vec3f{ -20.f, -1.125f, -15.f }); 
+			xRotationMatrix = make_rotation_x(angleX); 
+			Mat44f originToTranslation = make_translation(Vec3f{ 0.f, 1.125f, 50.f });n
 			Mat44f translationMatrix = make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });  
 			spaceship2World = translationMatrix * originToTranslation * xRotationMatrix * translationToOrigin * model2World;
 		}
@@ -361,7 +362,7 @@ int main() try
 			Mat44f Ry = make_rotation_y(phiNew);
 			Mat44f Rx = make_rotation_x(thetaNew);
 
-			world2Camera = Rx * Ry * t3;
+			world2Camera = xRotationMatrix * Ry * t3;
 
 		}
 		// -------------------------------
@@ -369,27 +370,32 @@ int main() try
 		//camera mode: fixed distance and follows in flight 
 		if (state.mode == 2)
 		{
-			Mat44f sp = spaceship2World;
-			Mat44f defaultRotation = kIdentity44f;
+			Vec3f ship3Vf = (Vec3f{ 0.f,0.f,45.f })+Vec3f{ spaceshipModel2World(0,3), -spaceshipModel2World(1,3), spaceshipModel2World(2,3) };
+			
+			Vec3f ship3vf2 = Vec3f{ 0.f,0.f,45.f } + Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve };
 
-			world2Camera = defaultRotation * defaultRotation;
+
+
+			//Mat44f defaultRotation = kIdentity44f;
+
+			//world2Camera = defaultRotation * defaultRotation;
 
 			//Mat44f initialTranslation = make_translation(Vec3f{0.f, 0.5f, -45.f});
-			Mat44f t2 = make_translation(Vec3f{ 0.f,0.f,45.f });
+			//Mat44f t2 = make_translation(Vec3f{ 0.f,0.f,45.f });
 
-			Mat44f moveCam2Ship =  make_translation(Vec3f{-sp(0,3), -sp(1,3), -sp(2,3)});
+			//Mat44f moveCam2Ship = make_translation(ship3Vf);//make_translation(Vec3f{sp(0,3), -sp(1,3), sp(2,3)});
 			//make_translation(Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
 
-			state.camControl.phi = kPi_ * 0;
+			//state.camControl.phi = kPi_ * 0;
 
-			Mat44f Rx = make_rotation_x(state.camControl.theta);
-			Mat44f Ry = make_rotation_y(state.camControl.phi);
+			//Mat44f Rx = make_rotation_x(state.camControl.theta);
+			//Mat44f Ry = make_rotation_y(state.camControl.phi);
 
 			//camControl.movementVec.y += (state.acceleration * dt);
 			//state.camControl.movementVec.x += (state.curve * dt);
 
 
-			world2Camera = Rx * Ry * t2 * moveCam2Ship;
+			world2Camera = Rx * Ry * make_translation(ship3vf2);
 
 		}
 
