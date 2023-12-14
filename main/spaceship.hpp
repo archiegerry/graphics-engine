@@ -119,6 +119,11 @@ void renderSprites(Mat44f project2World, GLuint shader) {
 	glDisable(GL_BLEND);
 }
 
+void cleanup() {
+	glDeleteTextures(1, &texture);
+	glDeleteVertexArrays(1, &VAO);
+}
+
 inline SimpleMeshData spaceship() {
 
 	Vec3f color = { 0.35f, 0.35f, 0.3f };

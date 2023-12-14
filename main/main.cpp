@@ -507,9 +507,14 @@ int main() try
 	}
 
 	// Cleanup.
-	//TODO: additional cleanup
-	glDeleteVertexArrays(1, &VAO); 
-	glDeleteBuffers(1, &VBO); 
+	cleanup();
+	glDeleteVertexArrays(1, &vao); 
+	glDeleteVertexArrays(1, &launch_vao_1); 
+	glDeleteVertexArrays(1, &launch_vao_2); 
+	glDeleteVertexArrays(1, &ship_one_vao); 
+	glDeleteTextures(1, &textures); 
+	glDeleteProgram(prog.programId()); 
+	glDeleteProgram(prog2.programId()); 
 	glDeleteProgram(prog3.programId()); 
 
 	glfwTerminate();
