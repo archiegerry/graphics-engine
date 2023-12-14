@@ -179,7 +179,7 @@ int main() try
 	 // Create VAO for the ship
 	 GLuint ship_one_vao = create_vao(ship);
 
-	 Mat44f spaceshipModel2World;
+	 Mat44f spaceshipModel2World = kIdentity44f;
 
 	 //-------------------------------------------------------------------
 	 // SHIP CREATION SECTION END
@@ -260,12 +260,12 @@ int main() try
 			state.spaceshipOrigin += (state.acceleration * dt);
 
 			// How quickly up
-			state.acceleration *= 1.0025;
+			state.acceleration *= float(1.0025);
 
 			// Curve once certain height is reached
 			if (state.spaceshipOrigin > 0.5f) {
-				state.spaceshipCurve += (0.05 * dt);
-				state.spaceshipCurve *= 1.005;
+				state.spaceshipCurve += (float(0.05) * dt);
+				state.spaceshipCurve *= float(1.005);
 			}
 
 			// Align spaceship with travel direction
@@ -278,10 +278,10 @@ int main() try
 			Mat44f originToTranslation = make_translation(Vec3f{ 0.f, -0.975f, -50.f });
 			Mat44f translationMatrix = make_translation(Vec3f{ 0.0f, state.spaceshipOrigin, state.spaceshipCurve });
 			spaceship2World = translationMatrix * originToTranslation * xRotationMatrix * translationToOrigin * model2World;
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.225f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -0.225f, -0.975f, -50.f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -50.225f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
-			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -49.75f }, 10, Vec3f{ 0.f, -state.spaceshipOrigin, -state.spaceshipCurve });
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.225f, -0.975f, -50.f }, 10);
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ -0.225f, -0.975f, -50.f }, 10);
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -50.225f }, 10);
+			generateSprites(Vec3f{ 0.f, state.spaceshipOrigin, state.spaceshipCurve } + Vec3f{ 0.f, -0.975f, -49.75f }, 10);
 		}
 
 
@@ -341,10 +341,10 @@ int main() try
 
 		Mat44f projCameraWorld = projection * (world2Camera * model2World);
 
-		Mat44f spaceshipModel2World = projection * (world2Camera * spaceship2World);
+		spaceshipModel2World = projection * (world2Camera * spaceship2World);
 
 		updateSprites(dt);
-		updateSpritePositions(sprites);
+		updateSpritePositions();
 		//-------------------------------
 		//when mode = 1
 		//camera i fixed on the ground and follows it in flight 
@@ -401,19 +401,19 @@ int main() try
 
 	
 		// Draw the map
-		mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceshipPosition,
+		mesh_renderer(vao, vertexCount, textures, prog.programId(), projCameraWorld, model2World, spaceshipPosition,
 			normalMatrix);
 
 		// Draw the first launchpad
-		mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceshipPosition,
+		mesh_renderer(launch_vao_1, launchVertexCount, 0, prog2.programId(), projCameraWorld, model2World, spaceshipPosition,
 			normalMatrix);
 
 		// Draw the second launchpad
-		mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceshipPosition,
+		mesh_renderer(launch_vao_2, launchVertexCount, 0, prog2.programId(), projCameraWorld, model2World, spaceshipPosition,
 			normalMatrix);
 
 		// Draw ship
-		mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceshipPosition,
+		mesh_renderer(ship_one_vao, shipVertexCount, 0, prog2.programId(), spaceshipModel2World, model2World, spaceshipPosition,
 			normalMatrix);
 
 		
@@ -470,23 +470,23 @@ int main() try
 			renderSprites(projCameraWorld, prog3.programId());
 
 			// Draw the map
-			mesh_renderer(vao, vertexCount, state, textures, prog.programId(), projCameraWorld, model2World, spaceship2World,
+			mesh_renderer(vao, vertexCount, textures, prog.programId(), projCameraWorld, model2World, spaceship2World,
 				normalMatrix);
 
 			// Draw the first launchpad
-			mesh_renderer(launch_vao_1, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+			mesh_renderer(launch_vao_1, launchVertexCount, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
 				normalMatrix);
 
 			// Draw the second launchpad
-			mesh_renderer(launch_vao_2, launchVertexCount, state, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
+			mesh_renderer(launch_vao_2, launchVertexCount, 0, prog2.programId(), projCameraWorld, model2World, spaceship2World,
 				normalMatrix);
 
 			// Draw ship
-			mesh_renderer(ship_one_vao, shipVertexCount, state, 0, prog2.programId(), spaceshipModel2World, model2World, spaceship2World,
+			mesh_renderer(ship_one_vao, shipVertexCount, 0, prog2.programId(), spaceshipModel2World, model2World, spaceship2World,
 				normalMatrix);
 
 			updateSprites(dt); 
-			updateSpritePositions(sprites); 
+			updateSpritePositions(); 
 
 
 			glBindVertexArray(0);

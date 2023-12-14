@@ -27,7 +27,6 @@ namespace
 	inline void mesh_renderer(
 		GLuint vao,
 		size_t vertexCount,
-		State_ const& state,
 		GLuint textureObjectId,
 		GLuint programID,
 		Mat44f projCameraWorld,
@@ -161,7 +160,7 @@ namespace
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
-		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+		glDrawArrays(GL_TRIANGLES, 0, GLuint(vertexCount));
 	}
 
 }

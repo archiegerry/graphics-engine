@@ -36,24 +36,24 @@ void setupSpriteBuffers() {
 	
 }
 
-Vec3f randomConicalDirection(Vec3f direction) {
+Vec3f randomConicalDirection() {
 		using namespace std;
 		random_device rd;
 		mt19937 gen(rd());
 		uniform_real_distribution<> dis(0, 1); 
 
-		float theta = 2 * kPi_ * dis(gen);
-		float phi = acos(1 - dis(gen) * (1 - cos(45)));
+		double theta = 2 * kPi_ * dis(gen);
+		double phi = acos(1 - dis(gen) * (1 - cos(45)));
 
 		Vec3f randomDirection;
-		randomDirection.x = sin(phi) * cos(theta);
-		randomDirection.y = sin(phi) * sin(theta);
-		randomDirection.z = cos(phi);
+		randomDirection.x = float(sin(phi) * cos(theta));
+		randomDirection.y = float(sin(phi) * sin(theta));
+		randomDirection.z = float(cos(phi));
 
 		return randomDirection;
 }
 
-void updateSpritePositions(const std::vector<Sprite>& sprites ) {
+void updateSpritePositions() {
 	std::vector<float> positions;
 	positions.reserve(sprites.size() * 3); // Each sprite has 3 float values for position
 
@@ -68,14 +68,14 @@ void updateSpritePositions(const std::vector<Sprite>& sprites ) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void generateSprites(Vec3f spaceshipPosition, int spriteAmount, Vec3f direction) {
+void generateSprites(Vec3f spaceshipPosition, int spriteAmount) {
 	for (int i = 0; i < spriteAmount; i++)
 	{
 		Sprite sprite;
 		// Position
 		sprite.position = spaceshipPosition;
 		// Direction
-		sprite.velocity = randomConicalDirection(direction);
+		sprite.velocity = randomConicalDirection();
 		// How long it lasts
 		sprite.lifespan = 0.5f;
 		sprites.emplace_back(sprite);
@@ -114,7 +114,7 @@ void renderSprites(Mat44f project2World, GLuint shader) {
 
 	// Bind VAO and draw 
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_POINTS, 0, sprites.size()); // Draw one point  
+	glDrawArrays(GL_POINTS, 0, GLuint(sprites.size())); // Draw one point  
 	glBindVertexArray(0); 
 	glDisable(GL_BLEND);
 }
@@ -167,7 +167,7 @@ inline SimpleMeshData spaceship() {
 
 			// Ickle lickle space ship (so cute!)
 	for (int vertices = 0; vertices < spaceship.positions.size(); vertices++) {
-		spaceship.positions[vertices] *= 0.18;
+		spaceship.positions[vertices] *= float(0.18);
 	}
 
 	return spaceship;
